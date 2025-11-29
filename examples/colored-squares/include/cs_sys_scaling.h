@@ -6,8 +6,8 @@
 namespace cs
 {
     /**
-     * @brief This udpater takes care of handling the scale
-     * of the sprites of entities with the SCALE compoennt.
+     * @brief This system takes care of handling the scaling
+     * of the sprites of entities with the TRANSFORM component.
      * 
      */
     class SysScaling : public ecsa::System<64>

@@ -6,8 +6,8 @@
 namespace cs
 {
     /**
-     * @brief This system takes care of udpating
-     * the animation for entities with ANIM_SET component.
+     * @brief This system takes care of updating
+     * the animation for entities with an ANIMATION component.
      * 
      */
     class SysAnimation : public ecsa::System<64>

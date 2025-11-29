@@ -6,7 +6,7 @@
 namespace cs
 {
     /**
-     * @brief This updater takes care of adding/removing/modifying
+     * @brief This system takes care of adding/removing/modifying
      * the entities on screen based on keypad input.
      * 
      */

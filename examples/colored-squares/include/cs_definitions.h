@@ -6,12 +6,7 @@
 #include "bn_optional.h"
 #include "bn_sprite_ptr.h"
 
-/**
- * @brief Here we have the definition of all
- * ESA-related stuff used in the game: parameterization
- * of tables, udpaters, tags, ...
- * 
- */
+
 namespace cs
 {
     // parametrization of an entity table and its updaters

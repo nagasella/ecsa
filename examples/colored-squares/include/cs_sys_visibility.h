@@ -7,7 +7,7 @@ namespace cs
 {
     /**
      * @brief This updater takes care of toggling
-     * the visibility of entities with the VISIBLE component.
+     * the visibility of all entities with a GFX component.
      * 
      */
     class SysVisibility : public ecsa::System<32>

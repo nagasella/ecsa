@@ -40,7 +40,7 @@ struct Gfx : ecsa::Component
 // parametrization of an entity table
 using Table = ecsa::EntityTable<2, 2, 1>;
 
-// this updater changes the the (x, y) on-screen coordinates 
+// this system changes the the (x, y) on-screen coordinates 
 // of each entity's sprite, based on the entity's velocity
 class SysMovement : public ecsa::System<2>
 {

@@ -6,7 +6,7 @@
 namespace cs
 {
     /**
-     * @brief This updater takes care of the movement
+     * @brief This system takes care of the movement
      * of entities on screen.
      * 
      */

@@ -6,8 +6,8 @@
 namespace cs
 {
     /**
-     * @brief This updater takes care of handling the
-     * sprite rotation for entity with the ANGLE component.
+     * @brief This system takes care of handling the
+     * sprite rotation for entity with a TRANSFORM component.
      * 
      */
     class SysRotation : public ecsa::System<96>
