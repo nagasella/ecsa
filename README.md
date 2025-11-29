@@ -2,169 +2,118 @@
 
 ECSA (Entity-Component-System Advance) is an Entity-Component-System (ECS) framework written in C++. It is mostly targetting Game Boy Advance (GBA) game development, so it does not make any use of C++ features like RTTI or exceptions.
 
-Below is a basic introduction to Entity Systems, as well as a comprehensive tutorial about ESA and its features. You can use it to learn and also as a reference to come back to from time to time. It covers all aaspects from basic usage to common optimization techniques. In this repo you'll also find a few examples that cover all the main feature of ESA. All examples are based on butano for now. For additional questions or help, you can reach out through the [GBADev discord](https://github.com/gbadev-org/awesome-gbadev?tab=readme-ov-file#community).
+Below is a basic introduction to Entity Systems, as well as a comprehensive tutorial about ECSA and its features. You can use it to learn and also as a reference to come back to from time to time. It covers all aaspects from basic usage to common optimization techniques. For additional questions or help, you can reach out through the [GBADev discord](https://github.com/gbadev-org/awesome-gbadev?tab=readme-ov-file#community).
 
 ## Table of contents
 
-- [An introduction to Entity Systems](#an-introduction-to-entity-systems)
+* [An introduction to Entiy Systems](#an-introduction-to-entity-systems)
 
-- [An introduction to ESA](#an-introduction-to-esa)
+* [An introduction to ECSA](#an-introduction-to-ecsa)
 
-- [Using ESA in your project](#using-esa-in-your-project)
+* [Using ECSA in your project](#using-ecsa-in-your-project)
 
-- [Tutorial - Part 1: basic building blocks](#tutorial---part-1-basic-building-blocks)
+* [Entity tables](#entity-tables)
 
-    - [A simple example](#a-simple-example)
+* [Entities and components](#entities-and-components)
 
-    - [Entity tables](#entity-tables)
+* [Systems](#systems)
 
-    - [Components](#components)
+* [Queries](#queries)
 
-    - [Entity lifecycle](#entity-lifecycle)
-
-    - [Updaters](#updaters)
-
-    - [Queries](#queries)
-
-    - [Apply](#apply)
-
-- [Tutorial - Part 2: advanced aspects](#tutorial---part-2-advanced-aspects)
-
-    - [Storing components in IWRAM](#storing-components-in-iwram)
-
-    - [Accessing components with the `[]` operator](#accessing-components-using-the--operator)
-
-    - [Indexed components and index updaters](#indexed-components-and-index-updaters)
-
-- [Appendix A: boosting performance with ARM code](#appendix-a-boosting-performance-with-arm-code)
-
-- [Appendix B: ESA helper components](#appendix-b-esa-helper-components)
+* [Appendix: boosting performance with ARM code](#appendix-boosting-performance-with-arm-code)
 
 ## An introduction to Entity Systems
 
-Entity Systems have been a hot topic in game development for several years, although there are different visions about how to implement one. ESA is inspired by the model discussed in [this series of articles from 2007](https://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/) (always a great read for anyone interested in the topic). It implements some of these ideas, although with a focus on the GBA hardware.
+Entity Systems have been a hot topic in game development for several years, although there are different visions about how to implement one. ECSA is inspired by the model discussed in [this series of articles from 2007](https://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/) (always a great read for anyone interested in the topic). It implements some of these ideas, although with a focus on the GBA hardware.
 
 The TL;DR version would be that an Entity System organizes the game logic in a way that is fundamentally different from a typical OOP approach, where game objects are generally represented by the instances of some classes and contain both the _data_ and the _logic_ of the objects. On the contrary, an Entity System is supposed to separate data from logic, implementing something more similar to a database: game objects (Entities) are organized into tables, where the row index is the ID of an Entity, the columns are the available Components for the entities, and Systems are routines that process all the entities that share a common set of Components. The IDs of groups of entities that share common aspects are obtained through queries on the database.
 
-## An introduction to ESA
+## An introduction to ECSA
 
-ESA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not that important). It provides a [clear framework](#tutorial---part-1-basic-building-blocks) to organize the code of your games, it makes it easy to [distribute the data of your game between IWRAM and EWRAM](#storing-components-in-iwram), it allows to easily [optimize memory consumption](#indexed-components-and-index-updaters) where necessary and [makes it simple to identify performance-critical parts of your code to compile as ARM instructions](#appendix-a-boosting-performance-with-arm-code). 
+ECSA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not important). It provides a clear framework to organize the code of your games and [makes it simple to identify performance-critical parts of your code to compile as ARM instructions](#appendix-boosting-performance-with-arm-code).
 
 Its main building blocks are the following:
-* The [_Entity table_](#entity-tables) is the main data structure of ESA: it contains all the data about game objects, organized in a tabular format
-* [_Entities_](#entity-lifecycle) are IDs that identify game objects in a unique way; they are the _row index_ of the entity table
-* [_Components_](#entity-lifecycle) are the _column indices_ of the table, and they implement the data for each entity (each entity can own (or not) each component)
-* [_Queries_](#queries) replace what in an ECS is normally called _system_; they are objects that are used for multiple purposes:
-    * They allow to retrieve the IDs of entities that satisfy a certain condition
-    * They allow to process (update every frame) all the entities that satisfy a certain condition
+* [_Entity tables_](#entity-tables) are the main data structure of ECSA: it contains all the data about game objects, organized in a tabular format
+* [_Entities_](#entities-and-components) are IDs that identify game objects in a unique way; they are the _row index_ of the entity table
+* [_Components_](#entities-and-components) are the _column indices_ of the table, and they implement the data for each entity - each entity can own (or not) each component
+* [_Systems_](#systems) are objects that are used to update (every frame) all the entities that satisfy a certain condition
+* [_Queries_](#queries) can be performed on an entity table, and they allow to retrieve IDs of entities that satisfy a certain condition (pretty much like SQL queries allow to filter rows in a table)
 
-## Using ESA in your project
+## Using ECSA in your project
 
-You can use ECSA with any GBA game engine out there. For example, [Butano]() is an awesome game engine for GBA, which I highly recommend. If you are planning to use ESA with the butano game engine, you can find excellent information about how to set up DevkitARM and butano [here](https://gvaliente.github.io/butano/getting_started.html). After that, just clone or download this repo and set up the butano porject Makefile to include ESA's `include` path. 
+You can use ECSA with any GBA game engine out there. For example, [Butano](https://github.com/GValiente/butano) is an awesome game engine for GBA, which I highly recommend. If you are planning to use ECSA with the butano game engine, you can find excellent information about how to set up DevkitARM and butano [here](https://gvaliente.github.io/butano/getting_started.html). After that, just clone or download this repo and set up the butano porject Makefile to include ECSA's `include` path. 
 
-You can also use ESA with other libraries (like libtonc, libgba, ...), and for general information about the available options and how to set up your development environment check out the [getting started](https://gbadev.net/getting-started.html) page of the awesome GBAdev community website. Again, you will need to add ESA's `include` path to your project.
-
-ESA comes with a few example projects, all of which are based on butano for the moment. Examples are always a good way to learn since you can try to tweak things and see what happens. If you want to run these projects, make sure that the relative path of butano defined in their Makefile matches its location on your computer.
-
-## A simple example
-
-Let's start with a simple example about using ESA. Below you can see how to define some components, allocate an entity table and create some entities.
-
-```cpp
-#include "ecsa.h"
-
-// define tags for the components
-#define POSITION 0
-#define VELOCITY 1
-
-// define two components
-struct Position : public ecsa::Component
-{
-    int x, y;
-
-    Position(int x, int y) : x(x), y(y) { }
-};
-
-struct Vecloity : public ecsa::Component
-{
-    int x, y;
-
-    Velocity(int x, int y) : x(x), y(y) { }
-};
-
-int main()
-{
-    // define an entity table with 100 entities, 2 components and 0 queries
-    ecsa::EntityTable<100, 2, 0> table;
-
-    // create 100 entities and give them components
-    for (int i = 0; i < 100; i++)
-    {
-        ecsa::Entity e = table.create();
-        table.add<POSITION>(e, new Position(0, 0));
-        table.add<VELOCITY>(e, new Velocity(1, 1));
-        table.subscribe(e);
-    }
-
-    // udpate entities
-    for (ecsa::Entity e = 0; e < 100; e++)
-    {
-        Position & p = table.get<Position, POSITION>(e);
-        Velocity & v = table.get<Velocity, VELOCITY>(e);
-
-        p.x += v.x;
-        p.y += v.y;
-    }
-}
-```
+You can also use ECSA with other libraries (like libtonc, libgba, ...), and for general information about the available options and how to set up your development environment check out the [getting started](https://gbadev.net/getting-started.html) page of the awesome GBAdev community website. Again, you will need to add ECSA's `include` path to your project.
 
 ## Entity tables
 
-In order to optimize memory consumption, ESA allows to parameterize entity tables with these template parmaeters:
+Entity tables allow to store game objects and their components. Technically speaking, an _entity_ is the row index of an entitiy table, while _components_ are the columns of the table. In order to optimize memory consumption, ECSA allows to parameterize entity tables with these template parameters:
 
-* `Entities`: the maximum number of entities available (the number of rows in the table)
+* `Entities`: the maximum number of entities available (the number of rows for the table)
 
-* `Components`: the maximum number of [components](#components) available (the number of columns in the table)
+* `Components`: the maximum number of [components](#components) available (the number of columns for the table)
 
-* `Queries`: the maximum number of [queries](#queries) supported by the table
+* `Systems`: the maximum number of [systems](#systems) supported by the table
 
-In the [example](#a-simple-example) above, the entity table was parameterized like this:
+Therefore, we can define an entity table like this:
 
 ```cpp
-ecsa::EntityTable<100, 2, 0> table;
+ecsa::EntityTable<100, 2, 4> table;
 ```
 
-This means that the `EntityTable` can contain at most `100` entities and `2` components. No queries are allowed here (although this is not a typical scenario).
+This means that the `EntityTable` can contain up to `100` entities and up to `2` components, and have `4` associated systems.
 
-## Entity lifecycle
+It is generally useful to define an alias for a table like this:
 
-An entity can be added to a table as shown in the example above: 
+```cpp
+using Table = ecsa::EntityTable<100, 2, 4>;
+```
+
+I will use this alias throughout the tutorial for simplicity.
+
+## Entities and components
+
+A new entity can be created inside a table like this: 
 
 ```cpp
 ecsa::Entity e = table.create();
 ```
 
-Here, `e` is an ID that identifies the entity uniquely. `ecsa::Entity` is just an alias for `unsigned short`.
+Here, `e` is an ID that identifies the entity uniquely (`ecsa::Entity` is just an alias for `unsigned short`).
 
-Then, we can add some components to it:
+Then, we can define some components:
 
 ```cpp
-table.add<POSITION>(e, new Position(0, 0));
-table.add<VELOCITY>(e, new Velocity(1, 1));
+#define POSITION 0
+#define VELOCITY 1
+
+struct Vector2 : public ecsa:Component 
+{
+    int x, y;
+};
 ```
 
-Here, `POSITION` and `VELOCITY` are just two integer indexes that are used to identify the components. They are used also to retrieve the components later on. 
+`POSITION` and `VELOCITY` are just two integer indexes that are used to identify the components. Components are identified both by their _type_ and by their _index_, which allows to have multiple components of the same type. We can add the components to the entity created above like this:
 
-After initializing the components, we can _subscribe_ the entity to all relevant queries:
+```cpp
+table.add<POSITION>(e, new Vector2(0, 0));
+table.add<VELOCITY>(e, new Vector2(1, 1));
+```
+
+It is important that components are created using `new`, since ECSA will call `delete` when they need to be destroyed. Finally, we need to _subscribe_ the entity to all relevant systems in the table:
 
 ```cpp
 table.subscribe(e);
 ```
 
-A reference to a component can be retrieved from an entity like this:
+At this point, we can get references to each component using the entity table:
 
 ```cpp
-Position & p = table.get<Position, POSITION>(e);
+Vector2 & p = table.get<Vector2, POSITION>(e);
+Vector2 & v = table.get<Vector2, VELOCITY>(e);
+
+p.x += v.x;
+p.y += v.y;
 ```
 
 Finally, entities can be deleted from the table using:
@@ -181,58 +130,54 @@ To destroy all entities in a table, simply use:
 table.clear();
 ```
 
-## Queries
+## Systems
 
-Queries are objects can be used for several purposes:
-1. To obtain a list of IDs of entities that satisfy a certain condition
-2. To process (update) all the entities that satisfy a certain condition
+Systems are the objects we use to process (update) entities at each frame. A system will process only entities that satisfy a certain condition.
 
-Queries are used to implement most of the game logic. Each query has to inherit from `ecsa::Query`, a template class. A query can implement one or more of the following functions (none is mandatory):
+Each system has to inherit from `ecsa::System`, a template class. For example...
+
+```cpp
+class MySystem : public ecsa::System<64>
+{
+
+};
+```
+
+... Defines a system that can process up to 64 entities.
+
+A system can implement one or more of the following functions (none is mandatory):
 * `void init()`: initialization logic (ran only once)
 * `void update()`: update logic (ran every frame)
-* `bool select(ecsa::Entity e)`: allows to determine whether each newly created entity should be processed by the query; it is triggered automatically every time a new entity is created
-* `bool where(ecsa::Entity e)`: allows to filter the entities subscribed to the query according to some condition
+* `bool select(ecsa::Entity e)`: allows to determine whether each newly created entity should be processed by the system; it is triggered automatically every time a new entity is _subscribed_ to a table
 
-The naming of `select` and `where` refers to the corresponing `SQL` clauses - `select` allows to select columns from a table (in `ECSA`, this corresponds to filtering entities based on their components) while `where` allows to filter based on the value contained in each element of the column (that is, the component's content).
+If no `select` function is defined, the system will not process _any_ entity (it can still be used to handle generic game logic that is not related to any entity).
 
 Let's make a practical example and implement an update logic for the `Position` and `Velocity` components (basically, the query will change the position of each entity based on its valocity):
 
 ```cpp
-using Table = ecsa::EntityTable<100, 2, 2>;
-
-class QMovement : public ecsa::Query<100> // query expected to work on up to 100 entities
+class SysMovement : public ecsa::System<100>
 {
     // a reference to the entity table
     Table & table;
 
     public:
 
-    // constructor - pass a reference to the entity table
-    QMovement(Table & table) : ecsa::Query<100>(), table(table)
+    // constructor - takes a reference to the entity table
+    SysMovement(Table & table) : ecsa::System<100>(), table(table)
     {
 
     }
 
-    // select clause of the query
+    // the system will process only entities that have both a POSITION and VELOCITY component
     bool select(ecsa::entity e) override
     {
         return table.has<POSITION>(e) && table.has<VELOCITY>(e);
     }
 
-    // where clause of the query - provides additional customized filtering
-    bool where(ecsa::Entity e)
-    {
-        Position & p = table.get<Position, POSITION>(e);
-
-        if (p.x > 100)
-            return true;
-    }
-
     // update logic for each frame
     void update() override
     {
-        // loop on all entities currently subscribed to this query
-        // they are the entities that satisfy the `select` clause
+        // loop on all entities subscribed to this system
         for (ecsa::Entity e : this->subscribed())
         {
             Position & p = table.get<Position, POSITION>(e);
@@ -245,168 +190,155 @@ class QMovement : public ecsa::Query<100> // query expected to work on up to 100
 };
 ```
 
-Then, the query can be added to the table. An integer index should also be defined, which will allow to retrieve the query later on:
+Then, the system can be added to the table. An integer index has to be defined for each system, pretty much like for components: this allows to retrieve the system later on. Here is an example of how to use the system defined above in the main program of our game:
 
 ```cpp
-#define QMOVEMENT 0
+#define SYSMOVEMENT 0
 
-table.add<QMOVEMENT>(new QMovement(table));
-```
+// define an entity table
+Table table;
 
-We can run this query in two ways. In the first case, we only take into account the `select` clause - that is, we only get a list of the IDs of all the entities processed by the query:
-
-```cpp
-ecsa::Vector<ecsa::Entity, 100> ids = table.query<QMOVEMENT, 100>();
-```
-
-In the second case, we can also take into account the `where` clause, which provides additional filtering:
-
-```cpp
-ecsa::Vector<ecsa::Entity, 100> ids = table.query<QMOVEMENT, 100>(true);
-```
-
-The argument `true` specifies that we want to use the `where` clause to filter the entities.
-
-## Dynamic queries
-
-Dynamic queries are queries that can take a parameter of any type in their `where` clause. In fact, a dynamic query _should always_ implement a `where` clause. Here is an example of definition of a dynamic query:
-
-```cpp
-using Table = ecsa::EntityTable<100, 2, 2>;
-
-class QMovement : public ecsa::DynamicQuery<100, int> // query works on max 100 entities, and can take an int parameter
-{
-    // a reference to the entity table
-    Table & table;
-
-    public:
-
-    // constructor - pass a reference to the entity table
-    QMovement(Table & table) : ecsa::DynamicQuery<100, int>(), table(table)
-    {
-
-    }
-
-    // select clause of the query
-    bool select(ecsa::Entity e) override
-    {
-        return table.has<POSITION>(e) && table.has<VELOCITY>(e);
-    }
-
-    // where clause of the query - provides additional customized filtering
-    // an int parameter is taken, which allows to filter dynamically
-    bool where(ecsa::Entity e, int x_max)
-    {
-        Position & p = table.get<Position, POSITION>(e);
-
-        if (p.x > x_max)
-            return true;
-    }
-};
-```
-
-The query can be added to an entity table as shown previously:
-
-```cpp
-#define QMOVEMENT 0
-
-table.add<QMOVEMENT>(new QMovement(table));
-```
-
-Then, the query can be executed like this:
-
-```cpp
-int x_max = 10;
-ecsa::Vector<ecsa::Entity, 100> ids = table.query<QMOVEMENT, 100, int>(x_max);
-```
-
-This will return a vector of entities for which `x > x_max`. Note the additional template argument `int` when we call `table.query`, which was not there for regular queries.
-
-## Game loop example
-
-In conclusion, when using ECSA, the overall look of the main program will be something like this:
-
-```cpp
-// define IDs for queries and components
-#define QUERY1 0
-#define QUERY2 1
-
-#define POSIITON 0
-#define VELOCITY 1
-
-// create an entity table with 100 entities, 2 components and 2 queries
-ecsa::EntityTable<100, 2, 2> table;
-
-// add queries (implemented elsewhere) to the table and assign them an ID
-table.add<QUERY1>(new Query1(table));
-table.add<QUERY2>(new Query2(table));
-
-// call "init" for every query
+// add all the systems and initialize them
+table.add<SYSMOVEMENT>(new SysMovement(table));
 table.init();
 
-// create an entity and subscribe it to the relevant queries
-ecsa::Entity e = table.create();
-table.add<POSITION>(e, new Position(0, 0));
-table.add<VELOCITY>(e, new Velocity(0, 0));
-table.subscribe(e);
+// can add some entities with their components at this point...
 
 // main loop
-while (1)
+while (true)
 {
-    // call "update" for every query
+    // call update() for every system previously added
     table.update();
+}
+
+```
+
+And that's it. Now, every time an entity is added to the table, if it owns a `POSITION` and `VELOCITY` component it will be updated by the system.
+
+## Queries
+
+Often it is useful, at any point in the program, to retrieve the IDs of entites that satisfy a certain condition: queries allow to do exactly this. ECSA offers several types of queries, listed in the next sub-sections. In general, the result of a query is an `ecsa::Vector`, which is a vector-like data structure with maximum capacity defined at compile time (however, remember that by design it does NOT preserve the order of the elements when an element is removed).
+
+### 1. Queries based on a system
+
+We can obtain all the IDs of the entities currently subscribed by a certain system (for example, the `SysMovement` defined above) by using:
+
+```cpp
+ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT>();
+```
+
+Now we can loop on these entities, for example using a range-based for loop:
+
+```cpp
+for (ecsa::Entity e : ids)
+{
+    // do something...
 }
 ```
 
-This keeps the main game loop very clean and tidy.
+### 2. Queries based on a function
+
+Arbitraily complex queries can be performed through simple functions. The function has to be defined as follows:
+
+```cpp
+bool find_entities_with_positive_x(Table & table, ecsa::Entity e)
+{
+    Vecotr2 & p = table.get<Vector2, POSITION>(e);
+    if (p.x > 0)
+        return true;
+    return false;
+}
+```
+
+Note that this is a `bool` function returning `true` if the entity satisfies the condition, and `false` otherwise. We can then use it to query entities from the table:
+
+```cpp
+ecsa::Vector<ecsa::Entity, 100> ids = table.query<100>(&find_entities_with_positive_x);
+```
+
+The query above will run on _every_ entity in the table. However, to make it faster, we may decide to run it only on the entities of the `SysMovement` previously defined:
+
+```cpp
+ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT>(&find_entities_with_positive_x);
+```
+
+### 3. Queries based on a function taking a parameter
+
+We can make queries _dynamic_ by making it take an extra parameter of any kind, so that we can filter based on that parameter. For example:
+
+```cpp
+bool find_entities_with_positive_x(Table & table, ecsa::Entity e, int & x_limit)
+{
+    Vecotr2 & p = table.get<Vector2, POSITION>(e);
+    if (p.x > x_limit)
+        return true;
+    return false;
+}
+```
+
+Now, the function can be used as follows:
+
+```cpp
+int x_limit = 200;
+
+ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, int>(&find_entities_with_positive_x, x_limit);
+```
+
+Here, the parameter we are passing is an `int`, but it could be of any type. Clearly, its value may change dynamically during the game, which makes this kind of queries very powerful. We can also run this query only on the entities processed by the `SysMovement`:
+
+```cpp
+int x_limit = 200;
+
+ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT, int>(&find_entities_with_positive_x, x_limit);
+```
 
 ## Appendix: boosting performance with ARM code
 
-In GBA development, if you feel like you need some performance boost it is often a good idea to compile some of your code in ARM instructions and store it in IWRAM (by default, code is compiled as Thumb and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but you can do the same with other libraries too like libtonc. We can apply this principle to updaters, queries and apply objects.
+In GBA development, when you need some extra performance it is often a good idea to compile performance-critical parts of your program as ARM instructions, stored in IWRAM (by default, code is compiled as Thumb and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but similar macros exist for other libraries, like libtonc. 
 
-In ECSA, queries generally implement small `update` functions that take care of very specialized tasks. This makes it easy to identify performance-critical parts of your program to compile as ARM code in IWRAM. For example, we can modify the query `QMovement` from above like this - first, the `q_movement.h` file:
+We can apply this principle to systems to improve performance for critical parts of the game: in ECSA, systems generally implement small `update` functions that take care of very specialized tasks; this makes it easy to identify performance-critical parts of your program to compile as ARM code in IWRAM. For example, we can modify the query `SysMovement` from above like this - first, the `sys_movement.h` file:
 
 ```cpp
-class QMovement : public ecsa::Query<100>;
+class SysMovement : public ecsa::System<100>;
 {
     Table & table;
 
     public:
 
-    QMovement(Table & table);
+    SysMovement(Table & table);
     bool select(ecsa::Entity e) override;
     BN_CODE_IWRAM void update() override; // marked as IWRAM (ARM) code
 };
 ```
 
-Then, we will implement in `q_movement.cpp` all functions apart from the `update` function:
+Then, we will implement in `sys_movement.cpp` all functions APART from the `update` function:
 
 ```cpp
-#include "udpater.h"
+#include "sys_movement.h"
 
-QMovement::QMovement(Table & table)
-    : Qeury<100>()
+SysMovement::SysMovement(Table & table)
+    : ecsa::System<100>()
 {
 
 }
 
-bool QMovement::select(ecsa::Entity e) override
+bool SysMovement::select(ecsa::Entity e) override
 {
     return table.has<POSITION>(e) && table.has<VELOCITY>(e);
 }
 ```
 
-And finally we can implement the `update` function in a file named `q_movement.iwram.cpp`:
+And finally we can implement the `update` function in a file named `sys_movement.iwram.cpp`:
 
 ```cpp
-#include "udpater.h"
+#include "sys_movement.h"
 
-void QMovement::update()
+void SysMovement::update()
 {
     for (ecsa::Entity e : this->subscribed())
     {
-        Position & p = table.get<Position, POSITION>;
-        Velocity & v = table.get<Veloicty, VELOCITY>;
+        Vecotr2 & p = table.get<Vecotr2, POSITION>;
+        Vecotr2 & v = table.get<Vecotr2, VELOCITY>;
 
         p.x += v.x;
         p.y += v.y;

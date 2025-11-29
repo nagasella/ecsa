@@ -39,7 +39,7 @@ namespace ecsa
 
 
         /**
-         * @brief Subscribe an entity to all the relevant queries in the table.
+         * @brief Subscribe an entity to all the relevant systems in the table.
          * 
          * @param e The entity to subscribe.
          */
@@ -55,7 +55,8 @@ namespace ecsa
 
         
         /**
-         * @brief Remove an entity from the table.
+         * @brief Remove an entity from the table, 
+         * and unsubscribe it from all the relevant systems.
          * 
          * @param e The Id of the entity.
          */
@@ -160,7 +161,7 @@ namespace ecsa
 
 
         /**
-         * @brief Perform a simple query returning the IDs of the entities
+         * @brief Perform a query that returns the IDs of the entities
          * subscribed to a certain system.
          * 
          * @tparam Size The maximum number of entities processed by the system.
@@ -175,7 +176,7 @@ namespace ecsa
 
 
         /**
-         * @brief Performs a query on the table, using a function that implements the query condition.
+         * @brief Perform a query on the table, using a function that implements the query condition.
          * Returns a vector with the ids of the entities that satisfy the query condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
@@ -196,7 +197,7 @@ namespace ecsa
 
 
         /**
-         * @brief Performs a query on the table, using a function that implements the query condition.
+         * @brief Perform a query on the table, using a function that implements the query condition.
          * Allow to pass a parameter of any type for dynamic filtering.
          * Returns a vector with the ids of the entities that satisfy the query condition.
          * 
@@ -220,7 +221,7 @@ namespace ecsa
 
 
         /**
-         * @brief Performs a query on a subset of entities processed by a certain system, 
+         * @brief Perform a query on a subset of entities processed by a certain system, 
          * using a function that implements the query condition.
          * Returns a vector with the ids of the entities that satisfy the query condition.
          * 
@@ -244,7 +245,7 @@ namespace ecsa
 
         
         /**
-         * @brief Performs a query on a subset of entities processed by a certain system, 
+         * @brief Perform a query on a subset of entities processed by a certain system, 
          * using a function that implements the query condition.
          * Allow to pass a parameter of any type for dynamic filtering.
          * Returns a vector with the ids of the entities that satisfy the query condition.

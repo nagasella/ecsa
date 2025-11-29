@@ -134,8 +134,7 @@ namespace ecsa
         void erase(int i)
         {
             assert(!empty() && "ESA ERROR: index is larger than current vector size!");
-            for (int j = i; j < _size - 1; j++)
-                _data[j] = _data[j + 1];
+            _data[i] = _data[_size - 1];
             _data[_size - 1].~Type();
             _size--;
         }
