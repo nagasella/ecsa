@@ -78,6 +78,20 @@ namespace ecsa
 
 
         /**
+         * @brief Destroy all the entities.
+         * 
+         */
+        void clear()
+        {
+            for (int e = 0; e < Entities; e++)
+            {
+                if (_entities.contains(e))
+                    destroy(e);
+            }
+        }
+
+
+        /**
          * @brief Tells id the table contains the entity.
          * 
          * @param e The ID of the entity.

@@ -37,7 +37,7 @@ namespace ecsa
          */
         Entity create()
         {
-            for (int j = 0; j < Entities / 32; j++)
+            for (int j = 0; j < Entities / 32 + 1; j++)
             {
                 for (Entity i = 0; i < 32; i++)
                 {
