@@ -24,16 +24,14 @@ Below is a basic introduction to Entity Systems, as well as a comprehensive tuto
 
 ## An introduction to Entity Systems
 
-Entity Systems have been a hot topic in game development for several years, although there are different visions about how to implement one. ECSA is inspired by the model discussed in [this series of articles from 2007](https://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/) (always a great read for anyone interested in the topic). It implements some of these ideas, although with a focus on the GBA hardware.
-
-The TL;DR version would be that an Entity System organizes the game logic in a way that is fundamentally different from a typical OOP approach, where game objects are generally represented by the instances of some classes and contain both the _data_ and the _logic_ of the objects. On the contrary, an Entity System is supposed to separate data from logic, implementing something more similar to a database: game objects (Entities) are organized into tables, where the row index is the ID of an Entity, the columns are the available Components for the entities, and Systems are routines that process all the entities that share a common set of Components. The IDs of groups of entities that share common aspects are obtained through queries on the database.
+Entity Systems (or, more precisely, Entity-Component-System frameworks, ECS) have been a hot topic in game development for several years, although there are different visions about how to implement one. ECSA is inspired by the model discussed in a series of articles by Adam Martin from 2007 entitled [Entity Systems are the future of mmog development](https://web.archive.org/web/20131226102755/http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/) (now only available on web archive). The TL;DR version would be that an Entity System organizes the game logic in a way that is fundamentally different from a typical OOP approach, where game objects are generally represented by the instances of some classes and contain both the _data_ and the _logic_ of the objects. On the contrary, an Entity System is supposed to separate data from logic, implementing something more similar to a relational database: game objects (Entities) are organized into tables, where the row index is the ID of an Entity, the columns are the available Components, and Systems are routines that process all the entities that share a common set of Components. Entity IDs may also be retrieved through queries.
 
 ## An introduction to ECSA
 
-ECSA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not important). It provides a clear framework to organize the code of your games and [makes it simple to identify performance-critical parts of your code to compile as ARM instructions](#appendix-boosting-performance-with-arm-code).
+ECSA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not important). It provides a clear framework to organize the code of your games and [makes it simple to identify performance-critical parts of your code to compile as ARM instructions](#appendix-boosting-performance-with-arm-code). Although ECS frameworks are generally notorious for being _cache-friendly_ and therefore providing very good performance compared to classical OOP, the hardware of the GBA is such that these kinds of advantages cannot be appreciated as much: the GBA does not have a cache in the modern sense, all the memory addresses are accessed directly from the CPU and so there is no such thing as a _cache-friendly_ approach to programming for the GBA.
 
-Its main building blocks are the following:
-* [_Entity tables_](#entity-tables) are the main data structure of ECSA: it contains all the data about game objects, organized in a tabular format
+Still, ECSA is relatively performant and provides several knobs to optimize memory efficiency; it can also be of great value in giving a clear framework to architect your game, by making use of few, simple building blocks:
+* [_Entity tables_](#entity-tables) are the main data structure of ECSA: they contain all the data about game objects, organized in a tabular format. You can have one or more entity tables in your game
 * [_Entities_](#entities-and-components) are IDs that identify game objects in a unique way; they are the _row index_ of the entity table
 * [_Components_](#entities-and-components) are the _column indices_ of the table, and they implement the data for each entity - each entity can own (or not) each component
 * [_Systems_](#systems) are objects that are used to update (every frame) all the entities that satisfy a certain condition
@@ -93,7 +91,9 @@ struct Vector2 : public ecsa:Component
 };
 ```
 
-`POSITION` and `VELOCITY` are just two integer indexes that are used to identify the components. Components are identified both by their _type_ and by their _index_, which allows to have multiple components of the same type. We can add the components to the entity created above like this:
+`POSITION` and `VELOCITY` are just two integer indexes that are used to identify the components. Components are identified both by their _type_ and by their _index_, which allows to have multiple components of the same type. In any case, they need to inherit from the struct `ecsa::Component`. 
+
+We can add the components to the entity created above like this:
 
 ```cpp
 table.add<POSITION>(e, new Vector2(0, 0));
@@ -214,6 +214,32 @@ while (true)
 ```
 
 And that's it. Now, every time an entity is added to the table, if it owns a `POSITION` and `VELOCITY` component it will be updated by the system.
+
+Keep in mind that it is possible at run time to activate or deactivate systmes. For example...
+
+```cpp
+table.deactivate<SYSMOVEMENT>();
+```
+
+... Will deactivate the system (it will not be processed anymore by `table.update()`). The system can then be activated again by:
+
+```cpp
+table.activate<SYSMOVEMENT>();
+```
+
+You can also deactivate or activate _all_ the systems associated to a table by using:
+
+```cpp
+table.deactivate_all();
+```
+
+And:
+
+```cpp
+table.activate_all();
+```
+
+This makes it easy to block certain functionalities during the game, and implement (for example) game pause menus.
 
 ## Queries
 

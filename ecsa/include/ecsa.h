@@ -6,14 +6,14 @@ namespace ecsa
 {
 
     /**
-     * @brief `Entity` alias, used for entity IDs.
+     * @brief `Entity` alias, used for entity Ids.
      * 
      */
     using Entity = unsigned short;
 
 
-    /**
-     * @brief `Id` alias, used for components and queries IDs.
+    /**  
+     * @brief `Id` alias, used for components and systems Ids.
      * 
      */
     using Id = unsigned short;
@@ -33,17 +33,17 @@ namespace ecsa
 
 
     /**
-     * @brief A minimal, custom implementation of `std::array`.
+     * @brief An array-like data structure.
      * 
-     * @tparam Type the data type of the array elements.
-     * @tparam Size The size of the array.
+     * @tparam Type The data type of the array elements.
+     * @tparam Size The capacity of the array.
      */
     template<typename Type, int Size>
     class Array;
 
 
     /**
-     * @brief A minimal, custom implementation of `std::vector`.
+     * @brief A vector-like data structure.
      * Its maximum capacity is defined at compile time.
      * It mostly relies on integer indexes rather than iterators,
      * however it allows for range-based for loops.
@@ -56,7 +56,7 @@ namespace ecsa
 
 
     /**
-     * @brief A bitmask used for registering entities.
+     * @brief A bitmask-like data structure used for keeping track of entities.
      * 
      * @tparam Entities 
      */
@@ -66,7 +66,8 @@ namespace ecsa
 
     /**
      * @brief The main data structure of ECSA, allows to organize entities (game objects) and their components.
-     * Each table can also have some queries associated, which are used to process the components of each entity.
+     * Each table can also have some systems associated, which are used to process the components of each entity.
+     * A table can also be queried to obtain the Ids of specific entities.
      * 
      * @tparam Entities The maximum number of entities that can be allocated.
      * @tparam Components The maximum number of components each entity can have.
@@ -84,7 +85,7 @@ namespace ecsa
 
 
     /**
-     * @brief A system processes entities that own certain compoennts.
+     * @brief A system processes entities that satsify a certain condition, like owning certain components.
      * 
      * @tparam Size The maximum number of entities the system is expected to process.
      */

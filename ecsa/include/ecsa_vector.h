@@ -173,7 +173,7 @@ namespace ecsa
 
 
         /**
-         * @brief Tells the current siz e of the vector.
+         * @brief Tells the current number of elements in the vector.
          * 
          * @return int 
          */

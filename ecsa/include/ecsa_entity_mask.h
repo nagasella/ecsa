@@ -55,7 +55,7 @@ namespace ecsa
         /**
          * @brief Marks a certain entity as present.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          */
         void add(Entity e)
         {
@@ -67,7 +67,7 @@ namespace ecsa
         /**
          * @brief Marks a certain entity as absent.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          */
         void destroy(Entity e)
         {
@@ -79,7 +79,7 @@ namespace ecsa
         /**
          * @brief Tells if the entity is present in the mask.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          * @return true 
          * @return false 
          */

@@ -52,7 +52,7 @@ namespace ecsa
 
 
         /**
-         * @brief Tells the size of the array.
+         * @brief Tells the capacity of the array.
          * 
          * @return int 
          */

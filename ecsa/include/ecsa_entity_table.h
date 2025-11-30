@@ -30,7 +30,7 @@ namespace ecsa
         /**
          * @brief Create a new entity and return its Id.
          * 
-         * @return entity 
+         * @return Entity 
          */
         Entity create()
         {
@@ -41,7 +41,7 @@ namespace ecsa
         /**
          * @brief Subscribe an entity to all the relevant systems in the table.
          * 
-         * @param e The entity to subscribe.
+         * @param e The Id of the entity to subscribe.
          */
         void subscribe(Entity e)
         {
@@ -78,7 +78,7 @@ namespace ecsa
 
 
         /**
-         * @brief Destroy all the entities.
+         * @brief Destroy all the entities in the table.
          * 
          */
         void clear()
@@ -92,9 +92,9 @@ namespace ecsa
 
 
         /**
-         * @brief Tells id the table contains the entity.
+         * @brief Tells if the table contains a certain entity.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          * @return true 
          * @return false 
          */
@@ -119,7 +119,7 @@ namespace ecsa
 
 
         /**
-         * @brief Get a reference to a component of an entity.
+         * @brief Get a reference to the component of an entity.
          * 
          * @tparam Type The type of the component.
          * @tparam Id The Id of the component.
@@ -149,14 +149,15 @@ namespace ecsa
 
 
         /**
-         * @brief Add a system.
+         * @brief Add a system to the table.
          * 
-         * @tparam Id The Id to assign.
+         * @tparam Id The Id to assign to the system.
          * @param s A pointer to the system, created with `new`.
          */
         template<int Id>
         void add(ISystem * s)
         {
+            s->activate();
             (*_systems)[Id] = s;
         }
 
@@ -164,22 +165,78 @@ namespace ecsa
         /**
          * @brief Get a system by its Id.
          * 
-         * @tparam SystemId The Id of the system.
+         * @tparam Id The Id of the system.
          * @return ISystem* 
          */
-        template<int SystemId>
+        template<int Id>
         ISystem * get()
         {
-            return (*_systems)[SystemId];
+            return (*_systems)[Id];
         }
 
 
         /**
-         * @brief Perform a query that returns the IDs of the entities
+         * @brief Activate a system. (Its `update` function will be executed when `EntityTable::update()` is called)
+         * 
+         * @tparam Id The Id of the system to activate.
+         */
+        template<int Id>
+        void activate()
+        {
+            ISystem * s = (*_systems)[Id];
+            s->activate();
+        }
+
+
+        /**
+         * @brief Dectivate a system. (Its `update` function will not be executed when `EntityTable::update()` is called)
+         * 
+         * @tparam Id The Id of the system to activate.
+         */
+        template<int Id>
+        void deactivate()
+        {
+            ISystem * s = (*_systems)[Id];
+            s->deactivate();
+        }
+
+
+        /**
+         * @brief Activate all systems associated to the table. (Their `update` function will be executed when `EntityTable::update()` is called)
+         * 
+         */
+        void activate_all()
+        {
+            for (int i = 0; i < Systems; i++)
+            {
+                ISystem * s = (*_systems)[i];
+                if (s != nullptr)
+                    s->activate();
+            }
+        }
+
+
+        /**
+         * @brief Deactivate all systems associated to the table. (Their `update` function will not be executed when `EntityTable::update()` is called)
+         * 
+         */
+        void deactivate_all()
+        {
+            for (int i = 0; i < Systems; i++)
+            {
+                ISystem * s = (*_systems)[i];
+                if (s != nullptr)
+                    s->deactivate();
+            }
+        }
+
+
+        /**
+         * @brief Perform a query that returns the Ids of all the entities
          * subscribed to a certain system.
          * 
          * @tparam Size The maximum number of entities processed by the system.
-         * @tparam SystemId The ID of the system.
+         * @tparam SystemId The Id of the system.
          * @return Vector<Entity, Size> 
          */
         template<int Size, int SystemId>
@@ -190,11 +247,11 @@ namespace ecsa
 
 
         /**
-         * @brief Perform a query on the table, using a function that implements the query condition.
-         * Returns a vector with the ids of the entities that satisfy the query condition.
+         * @brief Perform a query on the whole table, using a `bool` function for filtering.
+         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
-         * @param func A pointer to the function used as a query condition.
+         * @param func A pointer to the function used as a fltering condition.
          * @return Vector<Entity, Size> 
          */
         template<int Size>
@@ -211,13 +268,13 @@ namespace ecsa
 
 
         /**
-         * @brief Perform a query on the table, using a function that implements the query condition.
-         * Allow to pass a parameter of any type for dynamic filtering.
-         * Returns a vector with the ids of the entities that satisfy the query condition.
+         * @brief Perform a query on the whole table, using a `bool` function for filtering.
+         * Allows also to pass a parameter of any type for dynamic filtering.
+         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
          * @tparam ParamType The type of the parameter used for filtering.
-         * @param func A pointer to the function used as a query condition.
+         * @param func A pointer to the function used as a filtering condition.
          * @param param A refernece to the parameter used for dynamic filtering.
          * @return Vector<Entity, Size> 
          */
@@ -235,13 +292,13 @@ namespace ecsa
 
 
         /**
-         * @brief Perform a query on a subset of entities processed by a certain system, 
-         * using a function that implements the query condition.
-         * Returns a vector with the ids of the entities that satisfy the query condition.
+         * @brief Perform a query on the subset of entities processed by a certain system, 
+         * using a `bool` function for filtering.
+         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
-         * @tparam SystemId The ID of the system to use as a source for the entity IDs.
-         * @param func A pointer to the function used as a query condition.
+         * @tparam SystemId The Id of the system.
+         * @param func A pointer to the function used as a filtering condition.
          * @return Vector<Entity, Size> 
          */
         template<int Size, int SystemId>
@@ -259,15 +316,15 @@ namespace ecsa
 
         
         /**
-         * @brief Perform a query on a subset of entities processed by a certain system, 
-         * using a function that implements the query condition.
-         * Allow to pass a parameter of any type for dynamic filtering.
-         * Returns a vector with the ids of the entities that satisfy the query condition.
+         * @brief Perform a query on the subset of entities processed by a certain system, 
+         * using a `bool` function for filtering.
+         * Allows also to pass a parameter of any type for dynamic filtering.
+         * Returns a vector with the ids of the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
-         * @tparam SystemId The ID of the system to use as a source for the entity IDs.
+         * @tparam SystemId The Id of the system.
          * @tparam ParamType The type of the parameter used for filtering.
-         * @param func A pointer to the function used as a query condition.
+         * @param func A pointer to the function used as a filtering condition.
          * @param param A refernece to the parameter used for dynamic filtering.
          * @return Vector<Entity, Size> 
          */
@@ -286,7 +343,7 @@ namespace ecsa
 
 
         /**
-         * @brief Initialize all the queries in the table.
+         * @brief Initialize all the systems in the table.
          * 
          */
         void init()
@@ -301,7 +358,7 @@ namespace ecsa
 
 
         /**
-         * @brief Update all the queries in the table.
+         * @brief Update all the (active) systems in the table.
          * 
          */
         void update()
@@ -309,7 +366,7 @@ namespace ecsa
             for (int i = 0; i < Systems; i++)
             {
                 ISystem * s = (*_systems)[i];
-                if (s != nullptr)
+                if (s != nullptr && s->active())
                     s->update();
             }
         }

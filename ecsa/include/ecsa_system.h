@@ -12,7 +12,7 @@ namespace ecsa
         protected:
         
         /**
-         * @brief A vector with the IDs of the subscribed entities.
+         * @brief A vector with the Ids of the subscribed entities.
          * 
          */
         Vector<Entity, Size == 0 ? 1 : Size> _subscribed;
@@ -22,7 +22,7 @@ namespace ecsa
         /**
          * @brief Subscribe an entity to the query.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          */
         void subscribe(Entity e) override
         {
@@ -33,7 +33,7 @@ namespace ecsa
         /**
          * @brief Unsubscribe an entity from the query.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          */
         void unsubscribe(Entity e) override
         {
@@ -51,7 +51,7 @@ namespace ecsa
         /**
          * @brief Tells whether an entity is subscribed to the query or not.
          * 
-         * @param e The ID of the entity.
+         * @param e The Id of the entity.
          * @return true 
          * @return false 
          */
@@ -67,7 +67,7 @@ namespace ecsa
 
         
         /**
-         * @brief Returns a vector with the IDs of the subscribed entities.
+         * @brief Returns a vector with the Ids of the subscribed entities.
          * 
          * @return Vector<Entity, Size> 
          */

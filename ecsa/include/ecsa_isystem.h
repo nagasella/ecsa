@@ -7,12 +7,51 @@ namespace ecsa
 {
     class ISystem
     {
+
+        /**
+         * @brief Tells if the system is corrently being processed.
+         * 
+         */
+        bool _active;
+
+
         public:
 
 
         /**
-         * @brief `select` caluse of the query. Used to filter entities based on some condition.
-         * This clause is ran every time an entity is created in ECSA.
+         * @brief Tells if the system is currently active.
+         * If it is, it `update` function will be processed by ECSA each frame.
+         * 
+         */
+        bool active()
+        {
+            return _active;
+        }
+
+
+        /**
+         * @brief Activate the system.
+         * 
+         */
+        void activate()
+        {
+            _active = true;
+        }
+
+
+        /**
+         * @brief Deactivate the system.
+         * 
+         */
+        void deactivate()
+        {
+            _active = false;
+        }
+
+
+        /**
+         * @brief Used to filter entities based on some condition.
+         * This function is ran every time an entity is subscribed to an entity table.
          * 
          * @param e 
          * @return true 
@@ -25,7 +64,7 @@ namespace ecsa
 
 
         /**
-         * @brief Initialize the query object.
+         * @brief Initialization logic the system.
          * 
          */
         virtual void init()
@@ -35,13 +74,14 @@ namespace ecsa
 
 
         /**
-         * @brief Update logic for the query object.
+         * @brief Update logic for the system.
          * 
          */
         virtual void update()
         {
 
         }
+
         
         virtual void subscribe(Entity e);
         virtual void unsubscribe(Entity e);
