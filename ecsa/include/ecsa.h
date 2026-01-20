@@ -9,14 +9,14 @@ namespace ecsa
      * @brief `Entity` alias, used for entity Ids.
      * 
      */
-    using Entity = unsigned short;
+    using Entity = unsigned int;
 
 
     /**  
      * @brief `Id` alias, used for components and systems Ids.
      * 
      */
-    using Id = unsigned short;
+    using Id = unsigned int;
 
 
     /**

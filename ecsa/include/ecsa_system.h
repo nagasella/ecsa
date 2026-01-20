@@ -76,6 +76,8 @@ namespace ecsa
             return _subscribed;
         }
 
+        virtual ~System() = default;
+
     };
 }
 

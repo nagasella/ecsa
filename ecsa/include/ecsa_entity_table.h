@@ -11,6 +11,10 @@ namespace ecsa
     {
         EntityMask<Entities> _entities;
         Array<Array<Component *, Entities>, Components> * _table;
+
+        EntityMask<Components * Entities> _iwram_allocated;
+        Array<IArray *, Components> * _iwram_components;
+
         Array<ISystem *, Systems> * _systems;
 
         public:
@@ -23,6 +27,7 @@ namespace ecsa
         EntityTable()
         {
             _table = new Array<Array<Component *, Entities>, Components>(nullptr);
+            _iwram_components = new Array<IArray *, Components>(nullptr);
             _systems = new Array<ISystem *, Systems>(nullptr);
         }
 
@@ -66,6 +71,7 @@ namespace ecsa
             {
                 delete (*_table)[c][e];
                 (*_table)[c][e] = nullptr;
+                _iwram_allocated.destroy(Entities * c + e);
             }
             for (int i = 0; i < Systems; i++)
             {
@@ -119,7 +125,52 @@ namespace ecsa
 
 
         /**
+         * @brief Add an IWRAM (stack-allocated) component.
+         * 
+         * @tparam Type 
+         * @tparam Id 
+         * @param e 
+         * @param c 
+         */
+        template<typename Type, int Id>
+        void add(Entity e, Type c)
+        {
+            _iwram_allocated.add(Entities * Id + e);
+            (*((Array<Type, Entities> *) (*_iwram_components)[Id]))[e] = c;
+        }
+
+
+        /**
+         * @brief Add an array of IWRAM (stack-allocated) components.
+         * 
+         * @tparam Type 
+         * @tparam Id 
+         * @param components_array 
+         */
+        template<typename Type, int Id>
+        void add(Array<Type, Entities> & components_array)
+        {
+            (*_iwram_components)[Id] = &components_array;
+        }
+
+
+        /**
+         * @brief Returns a reference to an IWRAM-allocated array of components.
+         * 
+         * @tparam Type 
+         * @tparam Id 
+         * @return Array<Type, Entities>& 
+         */
+        template<typename Type, int Id>
+        Array<Type, Entities> & get()
+        {
+            return (Array<Type, Entities> &) *((*_iwram_components)[Id]);
+        }
+
+
+        /**
          * @brief Get a reference to the component of an entity.
+         * Only EWRAM (heap) allocated components are available through this function.
          * 
          * @tparam Type The type of the component.
          * @tparam Id The Id of the component.
@@ -144,7 +195,7 @@ namespace ecsa
         template<int Id>
         bool has(Entity e)
         {
-            return (*_table)[Id][e] != nullptr;
+            return _iwram_allocated.contains(Entities * Id + e) || (*_table)[Id][e] != nullptr;
         }
 
 
@@ -381,12 +432,13 @@ namespace ecsa
             for (int c = 0; c < Components; c++)
             {
                 for (int e = 0; e < Entities; e++)
-                {                    
+                {
                     delete (*_table)[c][e];
                     (*_table)[c][e] = nullptr;
                 }
             }
             delete _table;
+            delete _iwram_components;
             for (int s = 0; s < Systems; s++)
             {
                 delete (*_systems)[s];

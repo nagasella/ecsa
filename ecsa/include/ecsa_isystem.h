@@ -86,6 +86,8 @@ namespace ecsa
         virtual void subscribe(Entity e);
         virtual void unsubscribe(Entity e);
         virtual bool subscribed(Entity e);
+
+        virtual ~ISystem() = default;
     };  
 }
 
