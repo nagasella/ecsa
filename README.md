@@ -77,7 +77,7 @@ A new entity can be created inside a table like this:
 ecsa::Entity e = table.create();
 ```
 
-Here, `e` is an ID that identifies the entity uniquely (`ecsa::Entity` is just an alias for `unsigned short`).
+Here, `e` is an ID that identifies the entity uniquely (`ecsa::Entity` is just an alias for `unsigned int`).
 
 Then, we can define some components:
 
@@ -88,6 +88,10 @@ Then, we can define some components:
 struct Vector2 : public ecsa:Component 
 {
     int x, y;
+
+    Vector2() : x(0), y(0) { }
+
+    Vector2(int x, int y) : x(x), y(y) { }
 };
 ```
 
@@ -96,7 +100,7 @@ struct Vector2 : public ecsa:Component
 We can add the components to the entity created above like this:
 
 ```cpp
-table.add<POSITION>(e, new Vector2(0, 0));
+table.add<POSITION>(e, new Vector2());
 table.add<VELOCITY>(e, new Vector2(1, 1));
 ```
 
@@ -132,7 +136,7 @@ table.clear();
 
 ## Systems
 
-Systems are the objects we use to process (update) entities at each frame. A system will process only entities that satisfy a certain condition.
+Systems are the objects used to process (update) entities at each frame. A system will process only entities that satisfy a certain condition.
 
 Each system has to inherit from `ecsa::System`, a template class. For example...
 
@@ -177,7 +181,7 @@ class SysMovement : public ecsa::System<100>
     // update logic for each frame
     void update() override
     {
-        // loop on all entities subscribed to this system
+        // loop on all entities subscribed to this system and update their components
         for (ecsa::Entity e : this->subscribed())
         {
             Vector2 & p = table.get<Vector2, POSITION>(e);
@@ -247,7 +251,7 @@ Often it is useful, at any point in the program, to retrieve the IDs of entites 
 
 ### 1. Queries based on a system
 
-We can obtain all the IDs of the entities currently subscribed by a certain system (for example, the `SysMovement` defined above) by using:
+We can obtain all the IDs of the entities currently subscribed to a certain system (for example, the `SysMovement` defined above) by using:
 
 ```cpp
 ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT>();
@@ -282,7 +286,7 @@ Note that this is a `bool` function returning `true` if the entity satisfies the
 ecsa::Vector<ecsa::Entity, 100> ids = table.query<100>(&find_entities_with_positive_x);
 ```
 
-The query above will run on _every_ entity in the table. However, to make it faster, we may decide to run it only on the entities of the `SysMovement` previously defined:
+The query above will run on _every_ entity in the table. However, to make it faster, we may decide to run it only on the entities processed by `SysMovement`:
 
 ```cpp
 ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT>(&find_entities_with_positive_x);
@@ -310,7 +314,7 @@ int x_limit = 200;
 ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, int>(&find_entities_with_positive_x, x_limit);
 ```
 
-Here, the parameter we are passing is an `int`, but it could be of any type. Clearly, its value may change dynamically during the game, which makes this kind of queries very powerful. We can also run this query only on the entities processed by the `SysMovement`:
+Here, the parameter we are passing is an `int`, but it could be of any type. Clearly, its value may change dynamically during the game, which makes this kind of queries very powerful. We can also run this query only on the entities processed by `SysMovement`:
 
 ```cpp
 int x_limit = 200;
