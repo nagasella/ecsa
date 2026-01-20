@@ -169,7 +169,7 @@ class SysMovement : public ecsa::System<100>
     }
 
     // the system will process only entities that have both a POSITION and VELOCITY component
-    bool select(ecsa::entity e) override
+    bool select(ecsa::Entity e) override
     {
         return table.has<POSITION>(e) && table.has<VELOCITY>(e);
     }
@@ -180,8 +180,8 @@ class SysMovement : public ecsa::System<100>
         // loop on all entities subscribed to this system
         for (ecsa::Entity e : this->subscribed())
         {
-            Position & p = table.get<Position, POSITION>(e);
-            Velocity & v = table.get<Velocity, VELOCITY>(e);
+            Vector2 & p = table.get<Vector2, POSITION>(e);
+            Vector2 & v = table.get<Vector2, VELOCITY>(e);
 
             p.x += v.x;
             p.y += v.y;
@@ -318,6 +318,81 @@ int x_limit = 200;
 ecsa::Vector<ecsa::Entity, 100> ids = table.query<100, SYSMOVEMENT, int>(&find_entities_with_positive_x, x_limit);
 ```
 
+## IWRAM components
+
+The GBA has two main working memories: IWRAM, small (32 kbytes) but fast, and EWRAM, bigger (256 kbytes) but slower to access. When compiling a game with the devkit arm toolchain, normally objects declared on the stack are allocated in IWRAM, while obejcts declared on the heap (using `new` or `malloc`) are allocated in EWRAM. 
+
+From what was shown previously, ECSA components are generally allocated using `new` and therefore end up in the GBA's EWRAM: this is fine for many cases, but it can limit performance for components used frequently and by many entities. For this reason, ECSA offers the possibility to allocate components in IWRAM too, although IWRAM-allocated components work a bit differently than regular components. When working with IWRAM components, we work directly with an _arrray_ of components instead of individual components. We can declare an array of components on the stack along with the entity table (the size of the arrays must be the same as the maximum number of entities in the table):
+
+```cpp
+// table with 100 entities
+ecsa::EntityTable<100, 32, 32> table;
+
+ecsa::Array<Vector2, 100> positions; // array of POSITION components declared on the stack (IWRAM)
+ecsa::Array<Vector2, 100> velocities; // array of VELOCITY components declared on the stack (IWRAM)
+
+// add the arrays to the table and register them as component arrays
+table.add<Vector2, POSITION>(positions); 
+table.add<Vector2, VELOCITY>(velocities);
+```
+
+It is now possible to retrieve a reference to them like this:
+
+```cpp
+ecsa::Array<Vector2, 100> & positions = table.get<Vecotr2, POSITION>();
+```
+
+Then, the individual components can be accessed by a simple index - the index being the entity ID. For example, we can re-write the movement system described in previous sections like this:
+
+```cpp
+class SysMovement : public ecsa::System<100>
+{
+    // a reference to the individual component arrays
+    ecsa::Array<Vector2, 100> & positions;
+    ecsa::Array<Vector2, 100> & velocities;
+
+    public:
+
+    // constructor - takes a reference to the entity table
+    SysMovement(Table & table) : 
+        ecsa::System<100>(), 
+        positions(table.get<Vector2, POSITION>()), // extract component arrays from the table
+        velocities(table.get<Vector2, VELOCITY>()),
+    {
+
+    }
+
+    // the system will process only entities that have both a POSITION and VELOCITY component
+    bool select(ecsa::Entity e) override
+    {
+        return table.has<POSITION>(e) && table.has<VELOCITY>(e);
+    }
+
+    // update logic for each frame
+    void update() override
+    {
+        // loop on all entities subscribed to this system
+        for (ecsa::Entity e : this->subscribed())
+        {
+            Vector2 & p = positions[e]; // components accessed through indexes
+            Vector2 & v = velocities[e];
+
+            p.x += v.x;
+            p.y += v.y;
+        }
+    }
+};
+```
+
+The usage of IWRAM components can be particularly useful when coupled with [compiling code as ARM instructions](#appendix-boosting-performance-with-arm-code).
+
+This kind of components can give advantages also in case of a modern platform, not only in the case of the GBA, given the fact that arrays are cache-friendly data structures and performant when iterating. However, in the case of a modern system you should probably not allocate the array on the stack, but on the heap, like this:
+
+```cpp
+Array<Vector2, 100> * positions = new Array<Vector2, 100>();
+table.add<Vector2, POSITION>(*positions); 
+```
+
 ## Appendix: boosting performance with ARM code
 
 In GBA development, when you need some extra performance it is often a good idea to compile performance-critical parts of your program as ARM instructions, stored in IWRAM (by default, code is compiled as Thumb and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but similar macros exist for other libraries, like libtonc. 
@@ -363,11 +438,13 @@ void SysMovement::update()
 {
     for (ecsa::Entity e : this->subscribed())
     {
-        Vecotr2 & p = table.get<Vecotr2, POSITION>;
-        Vecotr2 & v = table.get<Vecotr2, VELOCITY>;
+        Vecotr2 & p = table.get<Vecotr2, POSITION>(e);
+        Vecotr2 & v = table.get<Vecotr2, VELOCITY>(e);
 
         p.x += v.x;
         p.y += v.y;
     }
 }
 ```
+
+In this example, regular components were used, but we could also use IWRAM components to obtain an even higher performance boost.
