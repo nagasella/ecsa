@@ -8,7 +8,7 @@
 #include "bn_log.h"
 
 cs::SysEntityManager::SysEntityManager(Table& t) :
-    ecsa::System<0>(),
+    System<0>(),
     table(t)
 {
     
@@ -32,7 +32,7 @@ void cs::SysEntityManager::update()
     // delete all the red squares
     if (bn::keypad::up_pressed())
     {
-        ecsa::Vector<Entity, 96> ids = table.query<96>(&queries::find_red_squares);
+        EntityBag<96> ids = table.query<96>(&queries::find_red_squares);
         for (Entity e : ids)
             table.destroy(e);
     }
@@ -44,7 +44,7 @@ void cs::SysEntityManager::update()
     // delete all the rotating squares
     else if (bn::keypad::left_pressed())
     {
-        ecsa::Vector<Entity, 96> ids = table.query<96, Ids::SYSROTATION>();
+        EntityBag<96> ids = table.query<96, Ids::SYSROTATION>();
         for (Entity e : ids)
             table.destroy(e);
     }
@@ -53,7 +53,7 @@ void cs::SysEntityManager::update()
     {
         // define the x boundary and run the query
         queries::XBoundary b = { .min = -64, .max = 64 };
-        ecsa::Vector<Entity, 128> yellow_squares = table.query<128, queries::XBoundary>(&queries::find_yellow_squares_within, b);
+        EntityBag<128> yellow_squares = table.query<128, queries::XBoundary>(&queries::find_yellow_squares_within, b);
         
         // stop movement for all entities returned by the query
         for (Entity e : yellow_squares)

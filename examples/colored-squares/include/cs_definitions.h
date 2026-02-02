@@ -11,7 +11,12 @@ namespace cs
 {
     // parametrization of an entity table and its updaters
     using Entity = ecsa::Entity;
+    using Component = ecsa::Component;
     using Table  = ecsa::EntityTable<128, 8, 6>;
+    template<int Entities>
+    using System = ecsa::System<Entities>;
+    template<int MaxSize>
+    using EntityBag = ecsa::EntityBag<MaxSize>;
 
     // colors
     enum class Colors
@@ -20,7 +25,7 @@ namespace cs
     };
 
     // components definition
-    struct Vector2 : public ecsa::Component
+    struct Vector2 : public Component
     {
         bn::fixed x, y;
 
@@ -30,7 +35,7 @@ namespace cs
         }
     };
 
-    struct Gfx : public ecsa::Component
+    struct Gfx : public Component
     {
         bn::optional<bn::sprite_ptr> sprite;
 
@@ -45,7 +50,7 @@ namespace cs
         }
     };
 
-    struct Animation : public ecsa::Component
+    struct Animation : public Component
     {
         int first, last, curr, timer;
 
@@ -55,7 +60,7 @@ namespace cs
         }
     };
 
-    struct Transform : public ecsa::Component
+    struct Transform : public Component
     {
         int angle;
         bn::fixed scale;
@@ -66,7 +71,7 @@ namespace cs
         }
     };
 
-    struct Color : public ecsa::Component
+    struct Color : public Component
     {
         Colors color;
 

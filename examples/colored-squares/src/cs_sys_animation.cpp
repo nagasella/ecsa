@@ -4,7 +4,7 @@
 #include "bn_sprite_items_squares.h"
 
 cs::SysAnimation::SysAnimation(Table& t) :
-    ecsa::System<64>(),
+    System<64>(),
     table(t)
 {
     

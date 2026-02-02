@@ -9,6 +9,15 @@
 
 #include "ecsa.h"
 
+// useful aliases
+using Table = ecsa::EntityTable<2, 2, 1>;
+using Entity = ecsa::Entity;
+using Component = ecsa::Component;
+template<int Entities>
+using System = ecsa::System<Entities>;
+template<int MaxSize>
+using EntityBag = ecsa::EntityBag<MaxSize>;
+
 // components ids
 #define VELOCITY 0
 #define GFX 1
@@ -17,7 +26,7 @@
 #define SYSMOVEMENT 0
 
 // components
-struct Vector2 : ecsa::Component
+struct Vector2 : Component
 {
     bn::fixed x, y;
 
@@ -27,7 +36,7 @@ struct Vector2 : ecsa::Component
     }
 };
 
-struct Gfx : ecsa::Component
+struct Gfx : Component
 {
     bn::sprite_ptr sprite;
 
@@ -37,24 +46,22 @@ struct Gfx : ecsa::Component
     }
 };
 
-// parametrization of an entity table
-using Table = ecsa::EntityTable<2, 2, 1>;
 
 // this system changes the the (x, y) on-screen coordinates 
 // of each entity's sprite, based on the entity's velocity
-class SysMovement : public ecsa::System<2>
+class SysMovement : public System<2>
 {
     Table & table;
 
     public:
 
-    SysMovement(Table& t) : ecsa::System<2>(), table(t)
+    SysMovement(Table& t) : System<2>(), table(t)
     {
 
     }
 
     // select only entities that have both a sprite and velocity component
-    bool select(ecsa::Entity e) override
+    bool select(Entity e) override
     {
         return table.has<GFX>(e) && table.has<VELOCITY>(e);
     }
@@ -68,7 +75,7 @@ class SysMovement : public ecsa::System<2>
     // update each entity processed by this updater
     void update() override
     {
-        for (ecsa::Entity e : this->subscribed())
+        for (Entity e : this->subscribed())
         {
             // read the entity's components from the table
             Gfx & gfx = table.get<Gfx, GFX>(e);
@@ -110,7 +117,7 @@ class SysMovement : public ecsa::System<2>
 
 
 // implements a query that finds all the entities moving towards the right
-bool find_entities_moving_right(Table & table, ecsa::Entity e)
+bool find_entities_moving_right(Table & table, Entity e)
 {
     Vector2 & vel = table.get<Vector2, VELOCITY>(e);
     if (vel.x > 0)
@@ -131,7 +138,7 @@ int main()
     table.init();
 
     // add an entity to the table, and give it some components
-    ecsa::Entity e = table.create();
+    Entity e = table.create();
     BN_LOG(e);
     table.add<VELOCITY>(e, new Vector2(0.5, 0.5));
     table.add<GFX>(e, new Gfx(bn::sprite_items::squares.create_sprite(0, 0)));
@@ -152,8 +159,8 @@ int main()
         // towards the right, and reverse their x direction
         if (bn::keypad::a_pressed())
         {
-            ecsa::Vector<ecsa::Entity, 2> ids = table.query<2>(&find_entities_moving_right);
-            for (ecsa::Entity e : ids)
+            EntityBag<2> ids = table.query<2>(&find_entities_moving_right);
+            for (Entity e : ids)
             {
                 Vector2 & vel = table.get<Vector2, VELOCITY>(e);
                 vel.x *= -1;

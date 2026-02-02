@@ -5,17 +5,17 @@
 
 namespace ecsa
 {
-    template<int Size>
+    template<int Entities>
     class System : public ISystem
     {
 
         protected:
         
         /**
-         * @brief A vector with the Ids of the subscribed entities.
+         * @brief An entity bag with the Ids of the subscribed entities.
          * 
          */
-        Vector<Entity, Size == 0 ? 1 : Size> _subscribed;
+        EntityBag<Entities> _subscribed;
 
         public:
 
@@ -67,11 +67,11 @@ namespace ecsa
 
         
         /**
-         * @brief Returns a vector with the Ids of the subscribed entities.
+         * @brief Returns an entity bag with the Ids of the subscribed entities.
          * 
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Entities> 
          */
-        Vector<Entity, Size> subscribed()
+        EntityBag<Entities> subscribed()
         {
             return _subscribed;
         }

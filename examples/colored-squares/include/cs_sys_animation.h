@@ -10,7 +10,7 @@ namespace cs
      * the animation for entities with an ANIMATION component.
      * 
      */
-    class SysAnimation : public ecsa::System<64>
+    class SysAnimation : public System<64>
     {
         Table & table;
 

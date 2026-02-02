@@ -10,7 +10,7 @@ namespace cs
      * the entities on screen based on keypad input.
      * 
      */
-    class SysEntityManager : public ecsa::System<0>
+    class SysEntityManager : public System<0>
     {
         Table& table;
         

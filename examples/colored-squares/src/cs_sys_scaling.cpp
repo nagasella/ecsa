@@ -4,7 +4,7 @@
 
 
 cs::SysScaling::SysScaling(Table& t) :
-    ecsa::System<64>(),
+    System<64>(),
     table(t)
 {
     

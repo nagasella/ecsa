@@ -10,7 +10,7 @@ namespace cs
      * sprite rotation for entity with a TRANSFORM component.
      * 
      */
-    class SysRotation : public ecsa::System<96>
+    class SysRotation : public System<96>
     {
         Table & table;
         

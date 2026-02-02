@@ -120,6 +120,7 @@ namespace ecsa
         template<int Id>
         void add(Entity e, Component * c)
         {
+            assert((*_table)[Id][e] == nullptr && "ECSA ERROR: component already exists!");
             (*_table)[Id][e] = c;
         }
 
@@ -127,30 +128,31 @@ namespace ecsa
         /**
          * @brief Add an IWRAM (stack-allocated) component.
          * 
-         * @tparam Type 
-         * @tparam Id 
-         * @param e 
-         * @param c 
+         * @tparam Type The type of the component.
+         * @tparam Id The Id of the component.
+         * @param e The entity to attach this component to.
+         * @param c The component to attach. (will be copied)
          */
         template<typename Type, int Id>
         void add(Entity e, Type c)
         {
+            assert((*_iwram_components)[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
             _iwram_allocated.add(Entities * Id + e);
             (*((Array<Type, Entities> *) (*_iwram_components)[Id]))[e] = c;
         }
 
 
         /**
-         * @brief Add an array of IWRAM (stack-allocated) components.
+         * @brief Add a component array to the table for IWRAM components.
          * 
-         * @tparam Type 
-         * @tparam Id 
-         * @param components_array 
+         * @tparam Id The ID of the component.
+         * @param components_array A pointer to the component array.
          */
-        template<typename Type, int Id>
-        void add(Array<Type, Entities> & components_array)
+        template<int Id>
+        void add(IArray * components_array)
         {
-            (*_iwram_components)[Id] = &components_array;
+            assert((*_iwram_components)[Id] == nullptr && "ECSA ERROR: IWRAM component already exists!");
+            _iwram_components[Id] = components_array;
         }
 
 
@@ -164,6 +166,7 @@ namespace ecsa
         template<typename Type, int Id>
         Array<Type, Entities> & get()
         {
+            assert((*_iwram_components)[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
             return (Array<Type, Entities> &) *((*_iwram_components)[Id]);
         }
 
@@ -180,6 +183,7 @@ namespace ecsa
         template<typename Type, int Id>
         Type & get(Entity e)
         {
+            assert((*_table)[Id][e] != nullptr && "ECSA ERROR: component not found!");
             return (Type &) *((*_table)[Id][e]);
         }
 
@@ -208,6 +212,7 @@ namespace ecsa
         template<int Id>
         void add(ISystem * s)
         {
+            assert((*_systems)[Id] == nullptr && "ECSA ERROR: system already exists!");
             s->activate();
             (*_systems)[Id] = s;
         }
@@ -222,6 +227,7 @@ namespace ecsa
         template<int Id>
         ISystem * get()
         {
+            assert((*_systems)[Id] != nullptr && "ECSA ERROR: system not found!");
             return (*_systems)[Id];
         }
 
@@ -288,10 +294,10 @@ namespace ecsa
          * 
          * @tparam Size The maximum number of entities processed by the system.
          * @tparam SystemId The Id of the system.
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Size> 
          */
         template<int Size, int SystemId>
-        Vector<Entity, Size> query()
+        EntityBag<Size> query()
         {
             return ((System<Size> *) get<SystemId>())->subscribed();
         }
@@ -303,12 +309,12 @@ namespace ecsa
          * 
          * @tparam Size The expected maximum number of entites the query will find.
          * @param func A pointer to the function used as a fltering condition.
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Size> 
          */
         template<int Size>
-        Vector<Entity, Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
+        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
         {
-            Vector<Entity, Size> result;
+            EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
             {
                 if ((*func)(*this, e))
@@ -327,12 +333,12 @@ namespace ecsa
          * @tparam ParamType The type of the parameter used for filtering.
          * @param func A pointer to the function used as a filtering condition.
          * @param param A refernece to the parameter used for dynamic filtering.
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Size> 
          */
         template<int Size, typename ParamType>
-        Vector<Entity, Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
+        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
         {
-            Vector<Entity, Size> result;
+            EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
             {
                 if ((*func)(*this, e, param))
@@ -350,13 +356,13 @@ namespace ecsa
          * @tparam Size The expected maximum number of entites the query will find.
          * @tparam SystemId The Id of the system.
          * @param func A pointer to the function used as a filtering condition.
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Size> 
          */
         template<int Size, int SystemId>
-        Vector<Entity, Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
+        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
         {
-            Vector<Entity, Size> result;
-            Vector<Entity, Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
+            EntityBag<Size> result;
+            EntityBag<Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
             for (Entity e : ids)
             {
                 if ((*func)(*this, e))
@@ -377,13 +383,13 @@ namespace ecsa
          * @tparam ParamType The type of the parameter used for filtering.
          * @param func A pointer to the function used as a filtering condition.
          * @param param A refernece to the parameter used for dynamic filtering.
-         * @return Vector<Entity, Size> 
+         * @return EntityBag<Size> 
          */
         template<int Size, int SystemId, typename ParamType>
-        Vector<Entity, Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
+        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
         {
-            Vector<Entity, Size> result;
-            Vector<Entity, Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
+            EntityBag<Size> result;
+            EntityBag<Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
             for (Entity e : ids)
             {
                 if ((*func)(*this, e, param))

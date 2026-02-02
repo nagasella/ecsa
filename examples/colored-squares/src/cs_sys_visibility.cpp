@@ -5,7 +5,7 @@
 
 
 cs::SysVisibility::SysVisibility(Table& t) :
-    ecsa::System<32>(),
+    System<32>(),
     table(t)
 {
     

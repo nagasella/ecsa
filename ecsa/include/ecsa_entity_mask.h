@@ -48,7 +48,7 @@ namespace ecsa
                     }
                 }
             }
-            return 0xffff;
+            return 0xffffffff;
         }
 
 

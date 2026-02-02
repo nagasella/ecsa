@@ -10,6 +10,9 @@ bool cs::queries::find_red_squares(Table& table, Entity e)
 
 bool cs::queries::find_yellow_squares_within(Table& table, Entity e, XBoundary& b)
 {
+    if (!table.has<Ids::COLOR>(e))
+        return false;
+
     Color & col = table.get<Color, Ids::COLOR>(e);
     Vector2 & pos = table.get<Vector2, Ids::POSITION>(e);
 

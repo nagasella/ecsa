@@ -43,16 +43,13 @@ namespace ecsa
 
 
     /**
-     * @brief A vector-like data structure.
-     * Its maximum capacity is defined at compile time.
-     * It mostly relies on integer indexes rather than iterators,
-     * however it allows for range-based for loops.
+     * @brief A data structure that is basically a vector of entity IDs,
+     * but does not preserve the order of elements when an element is erased.
      * 
-     * @tparam Type The data type of the vector elements.
-     * @tparam MaxSize The maximum number of elements the vector can contain.
+     * @tparam MaxSize The capacity of the bag.
      */
-    template<typename Type, int MaxSize>
-    class Vector;
+    template<int MaxSize>
+    class EntityBag;
 
 
     /**
@@ -87,15 +84,15 @@ namespace ecsa
     /**
      * @brief A system processes entities that satsify a certain condition, like owning certain components.
      * 
-     * @tparam Size The maximum number of entities the system is expected to process.
+     * @tparam Entities The maximum number of entities the system is expected to process.
      */
-    template<int Size>
+    template<int Entities>
     class System;
 
 }
 
 #include "ecsa_array.h"
-#include "ecsa_vector.h"
+#include "ecsa_entity_bag.h"
 #include "ecsa_entity_mask.h"
 #include "ecsa_isystem.h"
 #include "ecsa_system.h"
