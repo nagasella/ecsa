@@ -43,7 +43,11 @@ ECSA's architecture is based on the following simple building blocks:
 
 You can use ECSA with any GBA game engine out there. For example, [Butano](https://github.com/GValiente/butano) is an awesome game engine for GBA that abstracts a lot of the low-level GBA stuff very nicely. If you are planning to use ECSA with the butano game engine, you can find excellent information about how to set up DevkitARM and butano [here](https://gvaliente.github.io/butano/getting_started.html). After that, just clone or download this repo and set up the butano project's makefile to include ECSA's `include` path. 
 
-You can also use ECSA with other libraries (like libtonc, libgba, ...), and for general information about the available options and how to set up your development environment check out the [getting started](https://gbadev.net/getting-started.html) page of the awesome GBAdev community website. Again, you will need to add ECSA's `include` path to your project.
+You can also use ECSA with other libraries (like libtonc, libgba, ...), and for general information about the available options and how to set up your development environment check out the [getting started](https://gbadev.net/getting-started.html) page of the awesome GBAdev community website. Again, you will need to add ECSA's `include` path to your project. Then you can include ECSA simply by using:
+
+```cpp
+#include "ecsa.h"
+```
 
 ## Entity tables
 
