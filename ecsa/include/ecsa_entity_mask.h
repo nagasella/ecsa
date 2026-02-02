@@ -59,7 +59,7 @@ namespace ecsa
          */
         void add(Entity e)
         {
-            assert(e < Entities && "ESA ERROR: entity index is out of range!");
+            assert(e < Entities && "ECSA ERROR: entity index is out of range!");
             _mask[ e >> 5 ] |= (1 << (e & 31));
         }
 
@@ -71,7 +71,7 @@ namespace ecsa
          */
         void destroy(Entity e)
         {
-            assert(e < Entities && "ESA ERROR: entity index is out of range!");
+            assert(e < Entities && "ECSA ERROR: entity index is out of range!");
             _mask[e >> 5] &= ~(1 << (e & 31));
         }
 
@@ -85,7 +85,7 @@ namespace ecsa
          */
         [[nodiscard]] bool contains(Entity e)
         {
-            assert(e < Entities && "ESA ERROR: entity index is out of range!");
+            assert(e < Entities && "ECSA ERROR: entity index is out of range!");
             return ( (_mask[e >> 5] >> (e & 31)) & 1 ) == 1;
         }
 
