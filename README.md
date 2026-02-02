@@ -428,9 +428,9 @@ class SysMovement : public ecsa::System<100>
 };
 ```
 
-The usage of IWRAM components can be particularly useful when coupled with [compiling code as ARM instructions](#boosting-performance-with-arm-code). The drawback of using IWRAM components is that the array size for each component needs to be the same size as the maximum number of entities defined for the table, which can fill the IWRAM quickly.
+IWRAM components can be particularly useful when coupled with [compiling code as ARM instructions](#boosting-performance-with-arm-code). The drawback of using IWRAM components is that you are allocating a whole array instead of individual components, which can fill up IWRAM quickly: for this reason, the case where this type of component is most useful is when most of the entities in the table use a specific component.
 
-IWRAM components are interesting also for modern platforms, as arrays are cache-friendly data structures. However, in the case of a modern system you should not allocate the array on the stack, but on the heap, like this:
+IWRAM components are interesting also for modern platforms, as arrays are cache-friendly data structures that can be iterated quickly. However, in the case of a modern system you should not allocate the array on the stack, but on the heap, like this:
 
 ```cpp
 Array<Vector2, 100> * positions = new Array<Vector2, 100>();
@@ -441,9 +441,9 @@ And remember to `delete` the array manually once it is not needed anymore.
 
 ## Boosting performance with ARM code
 
-In GBA development, when you need some extra performance it is often a good idea to compile performance-critical parts of your program as ARM instructions, which are then loaded in IWRAM (by default, code is compiled as thumb instructions and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but similar macros exist for other libraries, like libtonc. 
+In GBA development, when you need some extra performance it is often a good idea to compile critical parts of your program as ARM instructions, which are then loaded in IWRAM (by default, code is compiled as thumb instructions and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but similar macros exist for other libraries, like libtonc. 
 
-We can apply this principle to systems to improve performance for critical parts of the game: in ECSA, systems generally implement small `update` functions that take care of very specialized tasks; this makes it easy to identify performance-critical parts of your program to compile as ARM code in IWRAM. For example, we can modify the query `SysMovement` from above like this - first, the `sys_movement.h` file:
+In ECSA, systems generally implement small `update` functions that take care of very specialized tasks; this makes it easy to identify performance-critical parts of your program to compile as ARM code in IWRAM. For example, we can modify the query `SysMovement` from above like this - first, the `sys_movement.h` file:
 
 ```cpp
 class SysMovement : public ecsa::System<100>;
