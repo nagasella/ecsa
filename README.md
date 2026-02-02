@@ -1,4 +1,4 @@
-# ECSA (Entity System Advance)
+# ECSA (Entity-Component-System Advance)
 
 ECSA (Entity-Component-System Advance) is an Entity-Component-System (ECS) framework written in C++. It is mostly targetting Game Boy Advance (GBA) game development, so it does not make any use of C++ features like RTTI or exceptions.
 
