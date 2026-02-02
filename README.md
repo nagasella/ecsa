@@ -18,11 +18,13 @@ Below is a basic introduction to Entity Systems, as well as a comprehensive tuto
 
 * [Systems](#systems)
 
+* [Example of main program](#example-of-main-program)
+
 * [Queries](#queries)
 
 * [IWRAM components](#iwram-components)
 
-* [Appendix: boosting performance with ARM code](#appendix-boosting-performance-with-arm-code)
+* [Boosting performance with ARM code](#boosting-performance-with-arm-code)
 
 ## An introduction to Entity Systems
 
@@ -30,7 +32,7 @@ Entity Systems (or, more precisely, Entity-Component-System frameworks, ECS) hav
 
 ## An introduction to ECSA
 
-ECSA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not relevant here). Although ECS frameworks are generally notorious for being _cache-friendly_ and therefore providing improved performance compared to classical OOP, this is not so relevant for the GBA as it does not have a cache in the modern sense. Having said that, ECSA allows to use effectively the memory hierarchy of the GBA and take advantage of existing features like the possibility to [compile part of the game code as ARM instructions](#appendix-boosting-performance-with-arm-code) in a way that is very simple and clean, allowing to address performance-critical parts of a game easily.
+ECSA is a compact, header-only framework. It aims to implement the vision described in the articles linked above, allowing you to organize your game in a way that resembles a _relational database_ (although here the _relational_ aspect is arguably not relevant here). Although ECS frameworks are generally notorious for being _cache-friendly_ and therefore providing improved performance compared to classical OOP, this is not so relevant for the GBA as it does not have a cache in the modern sense. Having said that, ECSA allows to use effectively the memory hierarchy of the GBA and take advantage of existing features like the possibility to [compile part of the game code as ARM instructions](#boosting-performance-with-arm-code) in a way that is very simple and clean, allowing to address performance-critical parts of a game easily.
 
 ECSA's architecture is based on the following simple building blocks:
 * [_Entity tables_](#entity-tables) are the main data structure of ECSA: they hold together all the data about game objects, which are organized in a tabular format. Multiple entity tables can be used at the same time
@@ -200,36 +202,11 @@ class SysMovement : public ecsa::System<100>
 };
 ```
 
-Then, the system can be added to the table. An integer index has to be defined for each system (called system ID), pretty much like for components: this allows to retrieve the system later on. Also, systems are processed in the order defined by these system IDs, therefore the system with ID `0` will be the first one to be processed, followed by the next ones, in order. 
-
-Here is an example of how to use the system defined above in the main program of our game:
+Then, the system can be added to the table. An integer index has to be defined for each system (called system ID), pretty much like for components: this allows to retrieve the system later on. Also, systems are processed in the order defined by these system IDs, therefore the system with ID `0` will be the first one to be processed, followed by the next ones, in order. The system is added to the table like this:
 
 ```cpp
-#define SYSMOVEMENT 0
-
-// define an entity table
-Table table;
-
-// add all the systems
 table.add<SYSMOVEMENT>(new SysMovement(table));
-// ...
-
-// call init() for every system
-table.init();
-
-// can add some entities with their components at this point...
-// ...
-
-// main loop
-while (true)
-{
-    // call update() for every system previously added
-    table.update();
-}
-
 ```
-
-And that's it. Now, every time an entity is added (and `subscribe`d) to the table, if it owns a `POSITION` and `VELOCITY` component it will be updated by the system.
 
 It is possible at run time to activate or deactivate systmes, for example...
 
@@ -256,6 +233,45 @@ table.activate_all();
 ```
 
 This makes it easy to block certain functionalities during the game, such as when implementing pause menus, etc.
+
+## Example of main program
+
+Here is an example of how everything explained in the previous sections is put together in the main program:
+
+```cpp
+#include "ecsa.h"
+
+#define POSITION 0
+#define VELOCITY 1
+
+#define SYSMOVEMENT 0
+
+int main()
+{
+    // 1. define an entity table
+    Table table;
+
+    // 2. add all the systems
+    table.add<SYSMOVEMENT>(new SysMovement(table));
+
+    // 3. call init() for every system
+    table.init();
+
+    // 4. add some entities with their components at this point...
+    ecsa::Entity e = table.create();
+    table.add<POSITION>(e, new Vector2());
+    table.add<VELOCITY>(e, new Vector2(1, 1));
+    table.subscribe(e);
+
+    // main loop
+    while (true)
+    {
+        // 5. call update() for every system previously added
+        table.update();
+    }
+}
+
+```
 
 ## Queries
 
@@ -402,7 +418,7 @@ class SysMovement : public ecsa::System<100>
 };
 ```
 
-The usage of IWRAM components can be particularly useful when coupled with [compiling code as ARM instructions](#appendix-boosting-performance-with-arm-code). The drawback of using IWRAM components is that the array size for each component needs to be the same size as the maximum number of entities defined for the table, which can fill the IWRAM quickly.
+The usage of IWRAM components can be particularly useful when coupled with [compiling code as ARM instructions](#boosting-performance-with-arm-code). The drawback of using IWRAM components is that the array size for each component needs to be the same size as the maximum number of entities defined for the table, which can fill the IWRAM quickly.
 
 IWRAM components are interesting also for modern platforms, as arrays are cache-friendly data structures. However, in the case of a modern system you should not allocate the array on the stack, but on the heap, like this:
 
@@ -413,7 +429,7 @@ table.add<POSITION>(positions);
 
 And remember to `delete` the array manually once it is not needed anymore.
 
-## Appendix: boosting performance with ARM code
+## Boosting performance with ARM code
 
 In GBA development, when you need some extra performance it is often a good idea to compile performance-critical parts of your program as ARM instructions, which are then loaded in IWRAM (by default, code is compiled as thumb instructions and stored in ROM). The butano engine allows to generate ARM code in IWRAM by using the macro `BN_CODE_IWRAM` (check [this](https://gvaliente.github.io/butano/faq.html#faq_memory_arm_iwram) out in the butano FAQ), but similar macros exist for other libraries, like libtonc. 
 
