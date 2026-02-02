@@ -2,7 +2,7 @@
 
 ECSA (Entity-Component-System Advance) is an Entity-Component-System (ECS) framework written in C++. It is mostly targetting Game Boy Advance (GBA) game development, so it does not make any use of C++ features like RTTI or exceptions.
 
-Below is a basic introduction to Entity Systems, as well as a comprehensive tutorial about ECSA and its features. You can use it to learn and also as a reference to come back to from time to time. It covers all aaspects from basic usage to common optimization techniques. For additional questions or help, you can reach out through the [GBADev discord](https://github.com/gbadev-org/awesome-gbadev?tab=readme-ov-file#community).
+Below is a basic introduction to Entity Systems, as well as a comprehensive tutorial about ECSA and its features. It covers all aaspects from basic usage to common optimization techniques. For additional questions or help, you can reach out through the [GBADev discord](https://github.com/gbadev-org/awesome-gbadev?tab=readme-ov-file#community).
 
 ## Table of contents
 
@@ -57,9 +57,9 @@ Entity tables allow to store game objects and their components. Technically spea
 
 * `Entities`: the maximum number of entities available (the maximum number of rows in the table)
 
-* `Components`: the maximum number of [components](#components) available (the number of columns in the table)
+* `Components`: the maximum number of components available (the number of columns in the table)
 
-* `Systems`: the maximum number of [systems](#systems) supported by the table
+* `Systems`: the maximum number of systems supported by the table
 
 Therefore, we can define an entity table like this:
 
@@ -75,7 +75,7 @@ It is generally useful to define an alias for a table like this:
 using Table = ecsa::EntityTable<100, 2, 4>;
 ```
 
-I will use this alias throughout the tutorial for simplicity.
+This alias will be used throughout the tutorial for simplicity.
 
 ## Entities and components
 
@@ -112,7 +112,7 @@ table.add<POSITION>(e, new Vector2());
 table.add<VELOCITY>(e, new Vector2(1, 1));
 ```
 
-It is important that components are created using `new`, since ECSA will call `delete` when the table is destroyed. Finally, we need to _subscribe_ the entity to all relevant systems in the table:
+It is important that components are created using `new`, since ECSA will `delete` them when the table is destroyed. Finally, we need to `subscribe` the entity to all relevant systems in the table:
 
 ```cpp
 table.subscribe(e);
@@ -162,7 +162,7 @@ A system can implement one or more of the following functions (none is mandatory
 * `void update()`: update logic (ran every frame)
 * `bool select(ecsa::Entity e)`: allows to determine whether each newly created entity should be processed by the system; it is triggered automatically every time a new entity is _subscribed_ to a table
 
-If no `select` function is defined, the system will not process _any_ entity (it can still be used to handle generic game logic that is not related to any entity).
+If no `select` function is defined, the system will not process _any_ entity (it can still be used to handle generic game logic, or it can work on entities obtained through [queries](#queries)).
 
 Let's make a practical example and implement an update logic for the `POISITION` and `VELOCITY` components (basically, the system will change the position of each entity based on its velocity):
 
@@ -202,13 +202,23 @@ class SysMovement : public ecsa::System<100>
 };
 ```
 
-Then, the system can be added to the table. An integer index has to be defined for each system (called system ID), pretty much like for components: this allows to retrieve the system later on. Also, systems are processed in the order defined by these system IDs, therefore the system with ID `0` will be the first one to be processed, followed by the next ones, in order. The system is added to the table like this:
+Then, the system can be added to the table like this:
 
 ```cpp
+#define SYSMOVEMENT 0
+
 table.add<SYSMOVEMENT>(new SysMovement(table));
 ```
 
-It is possible at run time to activate or deactivate systmes, for example...
+`SYSMOVEMENT` is an integer index which has to be defined for each system (called system ID). As for components, this index is used to retrieve systems from the table:
+
+```cpp
+SysMovement * sys = table.get<SYSMOVEMENT>();
+```
+
+IMPORTANT NOTE: systems are processed in the order defined by their system IDs, therefore the system with ID `0` will be the first one to be processed, followed by the next ones, in order.
+
+It is possible at run time to activate or deactivate systems, for example...
 
 ```cpp
 table.deactivate<SYSMOVEMENT>();
