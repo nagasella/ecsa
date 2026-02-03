@@ -22,6 +22,8 @@ Below is a basic introduction to Entity Systems, as well as a comprehensive tuto
 
 * [Queries](#queries)
 
+* [Optimized queries](#optimized-queries)
+
 * [IWRAM components](#iwram-components)
 
 * [Boosting performance with ARM code](#boosting-performance-with-arm-code)
@@ -359,6 +361,94 @@ int x_limit = 200;
 
 ecsa::EntityBag<100> ids = table.query<100, SYSMOVEMENT, int>(&find_entities_with_positive_x, x_limit);
 ```
+
+## Optimized queries
+
+The queries based on user-defined functions from the previous section are convenient to use, but they can be limiting in terms of performance. The main issue is related to the fact that the query function is called once per entity, which can be quite taxing performance-wise (especially on constrained hardware like the GBA). To help improve this situation, ECSA also has an optimized implementation of each type of query shown previously; the drawback is that optimized queries require a little bit more work from the programmer's side, since they require to manually iterate all the relevant entities and select the ones that satisfy the desired condition.
+
+Let's redefine for example the query function above called `find_entities_with_positive_x`. The optimized version of this function will look like this:
+
+```cpp
+template<int Size>
+ecsa::EntityBag<Size> find_entities_with_positive_x(Table & table)
+{
+    EntityBag<Size> result;
+
+    for (Entity e = 0; e < table.capacity(); e++) // iterate on whole table
+    {
+        if (!table.contains(e)) // check if the entity is in the table
+            continue;
+
+        // Add the entity to the query result if it satisfies the condition
+        Vecotr2 & p = table.get<Vector2, POSITION>(e);
+        if (p.x > 0)
+            result.push_back(e);
+    }
+    
+    return result;
+}
+```
+
+In this case, we are iterating on the whole table to find relevant entities, and we should make sure that entities are actually in the table. The function returns an EntityBag, which needs to be filled manually by the programmer, unlike the queries from the previous section. We can now run this query exactly as it was shown previously:
+
+```cpp
+ecsa::EntityBag<100> ids = table.query<100>(&find_entities_with_positive_x);
+```
+
+Because the iteration on the entities was moved inside the user-defined function itself, ECSA will actually only call the function once.
+
+If we wanted to run the query only on the entities processed by the system `SysMovement` instead of the entire table, the function has to be changed a bit:
+
+```cpp
+template<int Size>
+ecsa::EntityBag<Size> find_entities_with_positive_x(Table & table, ecsa::EntityBag<Size> & entities)
+{
+    EntityBag<Size> result;
+
+    for (Entity e : entities) // iterate on entities processed by SysMovement
+    {
+        Vecotr2 & p = table.get<Vector2, POSITION>(e);
+        if (p.x > 0)
+            result.push_back(e);
+    }
+    
+    return result;
+}
+```
+
+In this case, the function needs to take as an input also an additional `EntityBag` argument (reference), which corresponds to the entities subscribed to the `SysMovement`. The body of the function is somewhat simplified because there is no need anymore to check that entities are contained in the table - if they are processed by a system, they are surely in the table. We can execute it with the usual syntax:
+
+```cpp
+ecsa::EntityBag<100> ids = table.query<100, SYSMOVEMENT>(&find_entities_with_positive_x);
+```
+
+Finally, we can add a parameter also to this kind of query:
+
+```cpp
+template<int Size>
+ecsa::EntityBag<Size> find_entities_with_positive_x(Table & table, ecsa::EntityBag<Size> & entities, int & x_limit)
+{
+    EntityBag<Size> result;
+
+    for (Entity e : entities)
+    {
+        Vecotr2 & p = table.get<Vector2, POSITION>(e);
+        if (p.x > x_limit)
+            result.push_back(e);
+    }
+    
+    return result;
+}
+```
+
+And call it like this:
+
+```cpp
+int x_limit = 200;
+
+ecsa::EntityBag<100> ids = table.query<100, SYSMOVEMENT, int>(&find_entities_with_positive_x, x_limit);
+```
+
 
 ## IWRAM components
 

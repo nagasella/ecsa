@@ -305,7 +305,7 @@ namespace ecsa
 
         /**
          * @brief Perform a query on the whole table, using a `bool` function for filtering.
-         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
          * @param func A pointer to the function used as a fltering condition.
@@ -325,9 +325,24 @@ namespace ecsa
 
 
         /**
+         * @brief Perform an optimized query on the whole table.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
+         * 
+         * @tparam Size The maximum number of entites expected to be retrieved by the query.
+         * @param func A pointer to the function used for filtering.
+         * @return EntityBag<Size> 
+         */
+        template<int Size>
+        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &))
+        {
+            return (*func)(*this);
+        }
+
+
+        /**
          * @brief Perform a query on the whole table, using a `bool` function for filtering.
          * Allows also to pass a parameter of any type for dynamic filtering.
-         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
          * 
          * @tparam Size The expected maximum number of entites the query will find.
          * @tparam ParamType The type of the parameter used for filtering.
@@ -349,11 +364,29 @@ namespace ecsa
 
 
         /**
+         * @brief Perform an optimized query on the whole table.
+         * Allows also to pass a parameter of any type for dynamic filtering.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
+         * 
+         * @tparam Size The maximum number of entites expected to be retrieved by the query.
+         * @tparam ParamType The type of the parameter used for filtering.
+         * @param func A pointer to the function used for filtering.
+         * @param param A refernece to the parameter used for dynamic filtering.
+         * @return EntityBag<Size> 
+         */
+        template<int Size, typename ParamType>
+        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, ParamType &), ParamType & param)
+        {
+            return (*func)(*this, param);
+        }
+
+
+        /**
          * @brief Perform a query on the subset of entities processed by a certain system, 
          * using a `bool` function for filtering.
-         * Returns a vector with the Ids of the entities that satisfy the filtering condition.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
          * 
-         * @tparam Size The expected maximum number of entites the query will find.
+         * @tparam Size The maximum number of entites processed by the system.
          * @tparam SystemId The Id of the system.
          * @param func A pointer to the function used as a filtering condition.
          * @return EntityBag<Size> 
@@ -371,14 +404,31 @@ namespace ecsa
             return result;
         }
 
+
+        /**
+         * @brief Perform an optimized query on the subset of entities processed by a certain system.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
+         * 
+         * @tparam Size The maximum number of entites processed by the system.
+         * @tparam SystemId The Id of the system.
+         * @param func A pointer to the function used as a filtering condition.
+         * @return EntityBag<Size> 
+         */
+        template<int Size, int SystemId>
+        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &))
+        {
+            EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
+            return (*func)(*this, ids);
+        }
+
         
         /**
          * @brief Perform a query on the subset of entities processed by a certain system, 
          * using a `bool` function for filtering.
          * Allows also to pass a parameter of any type for dynamic filtering.
-         * Returns a vector with the ids of the Ids of the entities that satisfy the filtering condition.
+         * Returns an EntityBag with the ids of the Ids of the entities that satisfy the filtering condition.
          * 
-         * @tparam Size The expected maximum number of entites the query will find.
+         * @tparam Size The maximum number of entites processed by the system.
          * @tparam SystemId The Id of the system.
          * @tparam ParamType The type of the parameter used for filtering.
          * @param func A pointer to the function used as a filtering condition.
@@ -396,6 +446,26 @@ namespace ecsa
                     result.push_back(e);
             }
             return result;
+        }
+
+
+        /**
+         * @brief Perform an optimized query on the subset of entities processed by a certain system.
+         * Allows also to pass a parameter of any type for dynamic filtering.
+         * Returns an EntityBag with the Ids of the entities that satisfy the filtering condition.
+         * 
+         * @tparam Size The maximum number of entites processed by the system.
+         * @tparam SystemId The Id of the system.
+         * @tparam ParamType The type of the parameter used for filtering.
+         * @param func A pointer to the function used for filtering.
+         * @param param A refernece to the parameter used for filtering.
+         * @return EntityBag<Size> 
+         */
+        template<int Size, int SystemId, typename ParamType>
+        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &, ParamType &), ParamType & param)
+        {
+            EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
+            return (*func)(*this, ids, param);
         }
 
 
@@ -426,6 +496,17 @@ namespace ecsa
                 if (s != nullptr && s->active())
                     s->update();
             }
+        }
+
+
+        /**
+         * @brief Returns the maximum number of entities the table can contain.
+         * 
+         * @return constexpr int 
+         */
+        constexpr int capacity()
+        {
+            return Entities;
         }
 
 
