@@ -317,7 +317,7 @@ namespace ecsa
             EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
             {
-                if ((*func)(*this, e))
+                if (contains(e) && (*func)(*this, e))
                     result.push_back(e);
             }
             return result;
@@ -341,7 +341,7 @@ namespace ecsa
             EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
             {
-                if ((*func)(*this, e, param))
+                if (contains(e) && (*func)(*this, e, param))
                     result.push_back(e);
             }
             return result;
