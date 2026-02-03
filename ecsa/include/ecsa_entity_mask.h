@@ -39,6 +39,8 @@ namespace ecsa
         {
             for (int j = 0; j < Entities / 32 + 1; j++)
             {
+                if (_mask[j] == 0xffffffff)
+                    continue;
                 for (Entity i = 0; i < 32; i++)
                 {
                     if (((_mask[j] >> i) & 1) == 0)
