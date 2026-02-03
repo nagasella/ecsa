@@ -9,14 +9,10 @@
 
 #include "ecsa.h"
 
-// useful aliases
+using namespace ecsa;
+
+// useful alias
 using Table = ecsa::EntityTable<2, 2, 1>;
-using Entity = ecsa::Entity;
-using Component = ecsa::Component;
-template<int TableEntities, int SystemEntities>
-using System = ecsa::System<TableEntities, SystemEntities>;
-template<int MaxSize>
-using EntityBag = ecsa::EntityBag<MaxSize>;
 
 // components ids
 #define VELOCITY 0
