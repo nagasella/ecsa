@@ -10,7 +10,7 @@ namespace cs
      * of entities on screen.
      * 
      */
-    class SysMovement : public System<128>
+    class SysMovement : public System<128, 128>
     {
         Table& table;
 

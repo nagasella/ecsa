@@ -8,7 +8,7 @@
 #include "bn_log.h"
 
 cs::SysEntityManager::SysEntityManager(Table& t) :
-    System<0>(),
+    System<128, 0>(),
     table(t)
 {
     

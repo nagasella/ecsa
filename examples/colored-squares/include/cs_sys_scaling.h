@@ -10,7 +10,7 @@ namespace cs
      * of the sprites of entities with the TRANSFORM component.
      * 
      */
-    class SysScaling : public System<64>
+    class SysScaling : public System<128, 64>
     {
         Table& table;
         

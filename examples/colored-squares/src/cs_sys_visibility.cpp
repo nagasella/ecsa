@@ -5,7 +5,7 @@
 
 
 cs::SysVisibility::SysVisibility(Table& t) :
-    System<32>(),
+    System<128, 32>(),
     table(t)
 {
     

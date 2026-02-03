@@ -4,7 +4,7 @@
 
 
 cs::SysScaling::SysScaling(Table& t) :
-    System<64>(),
+    System<128, 64>(),
     table(t)
 {
     

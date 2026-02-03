@@ -1,7 +1,7 @@
 #include "cs_sys_rotation.h"
 
 cs::SysRotation::SysRotation(Table& t) :
-    System<96>(),
+    System<128, 96>(),
     table(t)
 {
     

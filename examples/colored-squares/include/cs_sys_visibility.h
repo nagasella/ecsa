@@ -10,7 +10,7 @@ namespace cs
      * the visibility of all entities with a GFX component.
      * 
      */
-    class SysVisibility : public System<32>
+    class SysVisibility : public System<128, 32>
     {
         Table& table;
 

@@ -1,7 +1,7 @@
 #include "cs_sys_movement.h"
 
 cs::SysMovement::SysMovement(Table& t) :
-    System<128>(),
+    System<128, 128>(),
     table(t)
 {
     

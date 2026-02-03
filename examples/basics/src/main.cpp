@@ -13,8 +13,8 @@
 using Table = ecsa::EntityTable<2, 2, 1>;
 using Entity = ecsa::Entity;
 using Component = ecsa::Component;
-template<int Entities>
-using System = ecsa::System<Entities>;
+template<int TableEntities, int SystemEntities>
+using System = ecsa::System<TableEntities, SystemEntities>;
 template<int MaxSize>
 using EntityBag = ecsa::EntityBag<MaxSize>;
 
@@ -49,13 +49,13 @@ struct Gfx : Component
 
 // this system changes the the (x, y) on-screen coordinates 
 // of each entity's sprite, based on the entity's velocity
-class SysMovement : public System<2>
+class SysMovement : public System<2, 2>
 {
     Table & table;
 
     public:
 
-    SysMovement(Table& t) : System<2>(), table(t)
+    SysMovement(Table& t) : System<2, 2>(), table(t)
     {
 
     }

@@ -13,8 +13,8 @@ namespace cs
     using Entity = ecsa::Entity;
     using Component = ecsa::Component;
     using Table  = ecsa::EntityTable<128, 8, 6>;
-    template<int Entities>
-    using System = ecsa::System<Entities>;
+    template<int TableEntities, int SystemEntities>
+    using System = ecsa::System<TableEntities, SystemEntities>;
     template<int MaxSize>
     using EntityBag = ecsa::EntityBag<MaxSize>;
 
