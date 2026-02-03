@@ -5,17 +5,23 @@
 
 namespace ecsa
 {
-    template<int Entities>
+    template<int TableEntities, int SystemEntities>
     class System : public ISystem
     {
 
         protected:
+
+        /**
+         * @brief A mask tracking subscribed entities.
+         * 
+         */
+        EntityMask<TableEntities> _mask_subscribed;
         
         /**
          * @brief An entity bag with the Ids of the subscribed entities.
          * 
          */
-        EntityBag<Entities> _subscribed;
+        EntityBag<SystemEntities> _subscribed;
 
         public:
 
@@ -27,6 +33,7 @@ namespace ecsa
         void subscribe(Entity e) override
         {
             _subscribed.push_back(e);
+            _mask_subscribed.add(e);
         }
 
 
@@ -42,6 +49,7 @@ namespace ecsa
                 if (_subscribed[i] == e)
                 {
                     _subscribed.erase(i);
+                    _mask_subscribed.destroy(e);
                     break;
                 }
             }
@@ -57,21 +65,16 @@ namespace ecsa
          */
         bool subscribed(Entity e) override
         {
-            for (int i = 0; i < _subscribed.size(); i++)
-            {
-                if (_subscribed[i] == e)
-                    return true;
-            }
-            return false;
+            return _mask_subscribed.contains(e);
         }
 
         
         /**
          * @brief Returns an entity bag with the Ids of the subscribed entities.
          * 
-         * @return EntityBag<Entities> 
+         * @return EntityBag<SystemEntities> 
          */
-        EntityBag<Entities> subscribed()
+        EntityBag<SystemEntities> subscribed()
         {
             return _subscribed;
         }

@@ -14,7 +14,7 @@ namespace ecsa
          * @brief The entity mask.
          * 
          */
-        int _mask [ (Entities - 1) / 32 + 1 ];
+        int _mask [ Entities == 0 ? 1 : ((Entities - 1) / 32 + 1) ];
         
 
         public:
@@ -26,7 +26,7 @@ namespace ecsa
          */
         EntityMask()
         {
-            for (int i = 0; i < ((Entities - 1) >> 5) + 1; i++)
+            for (int i = 0; i < Entities / 32 + 1; i++)
                 _mask[i] = 0;
         }
 

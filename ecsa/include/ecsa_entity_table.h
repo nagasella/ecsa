@@ -299,7 +299,7 @@ namespace ecsa
         template<int Size, int SystemId>
         EntityBag<Size> query()
         {
-            return ((System<Size> *) get<SystemId>())->subscribed();
+            return ((System<Entities, Size> *) get<SystemId>())->subscribed();
         }
 
 
@@ -362,7 +362,7 @@ namespace ecsa
         EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
         {
             EntityBag<Size> result;
-            EntityBag<Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
+            EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
             for (Entity e : ids)
             {
                 if ((*func)(*this, e))
@@ -389,7 +389,7 @@ namespace ecsa
         EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
         {
             EntityBag<Size> result;
-            EntityBag<Size> ids = ((System<Size> *) get<SystemId>())->subscribed();
+            EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
             for (Entity e : ids)
             {
                 if ((*func)(*this, e, param))

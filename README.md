@@ -149,13 +149,13 @@ Systems are the objects used to process (update) entities at each frame. A syste
 Each system has to inherit from `ecsa::System`, a template class. For example...
 
 ```cpp
-class MySystem : public ecsa::System<64>
+class MySystem : public ecsa::System<100, 20>
 {
 
 };
 ```
 
-... Defines a system that can process up to 64 entities.
+... Defines a system that can process up to 20 entities, and that belongs to a table that can hold up to 100 entities.
 
 A system can implement one or more of the following functions (none is mandatory):
 * `void init()`: initialization logic (ran only once)
@@ -167,7 +167,7 @@ If no `select` function is defined, the system will not process _any_ entity (it
 Let's make a practical example and implement an update logic for the `POISITION` and `VELOCITY` components (basically, the system will change the position of each entity based on its velocity):
 
 ```cpp
-class SysMovement : public ecsa::System<100>
+class SysMovement : public ecsa::System<100, 100> // the table can hold 100 entities and the system can process any of those
 {
     // a reference to the entity table
     Table & table;
@@ -175,7 +175,7 @@ class SysMovement : public ecsa::System<100>
     public:
 
     // constructor - takes a reference to the entity table
-    SysMovement(Table & table) : ecsa::System<100>(), table(table)
+    SysMovement(Table & table) : ecsa::System<100, 100>(), table(table)
     {
 
     }
@@ -399,7 +399,7 @@ class SysMovement : public ecsa::System<100>
 
     // constructor - takes a reference to the entity table
     SysMovement(Table & table) : 
-        ecsa::System<100>(), 
+        ecsa::System<100, 100>(), 
         positions(table.get<Vector2, POSITION>()), // extract component arrays from the table
         velocities(table.get<Vector2, VELOCITY>()),
     {
@@ -446,7 +446,7 @@ In GBA development, when you need some extra performance it is often a good idea
 In ECSA, systems generally implement small `update` functions that take care of very specialized tasks; this makes it easy to identify performance-critical parts of your program to compile as ARM code in IWRAM. For example, we can modify the query `SysMovement` from above like this - first, the `sys_movement.h` file:
 
 ```cpp
-class SysMovement : public ecsa::System<100>;
+class SysMovement : public ecsa::System<100, 100>;
 {
     Table & table;
 
@@ -464,7 +464,7 @@ Then, we will implement in `sys_movement.cpp` all functions APART from the `upda
 #include "sys_movement.h"
 
 SysMovement::SysMovement(Table & table)
-    : ecsa::System<100>()
+    : ecsa::System<100, 100>()
 {
 
 }

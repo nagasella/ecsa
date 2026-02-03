@@ -43,10 +43,10 @@ namespace ecsa
 
 
     /**
-     * @brief A data structure that is basically a vector of entity IDs,
-     * but does not preserve the order of elements when an element is erased.
+     * @brief A vector-like data structure that contains entity IDs.
+     * Does not preserve the order of elements when an element is erased.
      * 
-     * @tparam MaxSize The capacity of the bag.
+     * @tparam MaxSize The maximum capacity of the bag.
      */
     template<int MaxSize>
     class EntityBag;
@@ -55,7 +55,7 @@ namespace ecsa
     /**
      * @brief A bitmask-like data structure used for keeping track of entities.
      * 
-     * @tparam Entities 
+     * @tparam Entities The maximum number of entities the mask can handle.
      */
     template<int Entities>
     class EntityMask;
@@ -82,11 +82,12 @@ namespace ecsa
 
 
     /**
-     * @brief A system processes entities that satsify a certain condition, like owning certain components.
+     * @brief A system processes entities that staisfy a certain condtion (like owning (a) certain component(s)).
      * 
-     * @tparam Entities The maximum number of entities the system is expected to process.
+     * @tparam TableEntities The maximum number of entities alllowed for the EntityTable owning the system.
+     * @tparam SystemEntities The maximum number of entities the system is expected to process.
      */
-    template<int Entities>
+    template<int TableEntities, int SystemEntities>
     class System;
 
 }
