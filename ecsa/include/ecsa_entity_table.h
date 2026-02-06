@@ -10,12 +10,12 @@ namespace ecsa
     class EntityTable
     {
         EntityMask<Entities> _entities;
-        Array<Array<Component *, Entities>, Components> * _table;
+        Array<Array<Component *, Entities>, Components> _table;
 
         EntityMask<Components * Entities> _iwram_allocated;
-        Array<IArray *, Components> * _iwram_components;
+        Array<IArray *, Components> _iwram_components;
 
-        Array<ISystem *, Systems> * _systems;
+        Array<ISystem *, Systems> _systems;
 
         public:
 
@@ -24,11 +24,14 @@ namespace ecsa
          * @brief Constructor.
          * 
          */
-        EntityTable()
+        EntityTable() : _systems(nullptr), _iwram_components(nullptr)
         {
-            _table = new Array<Array<Component *, Entities>, Components>(nullptr);
-            _iwram_components = new Array<IArray *, Components>(nullptr);
-            _systems = new Array<ISystem *, Systems>(nullptr);
+            for (int e = 0; e < Entities; e++)
+            {
+                for (int c = 0; c < Components; c++)
+                    _table[c][e] = nullptr;
+            }
+
         }
 
 
@@ -52,7 +55,7 @@ namespace ecsa
         {
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr && s->select(e))
                     s->subscribe(e);
             }
@@ -69,13 +72,13 @@ namespace ecsa
         {
             for (int c = 0; c < Components; c++)
             {
-                delete (*_table)[c][e];
-                (*_table)[c][e] = nullptr;
+                delete _table[c][e];
+                _table[c][e] = nullptr;
                 _iwram_allocated.destroy(Entities * c + e);
             }
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr && s->subscribed(e))
                     s->unsubscribe(e);
             }
@@ -120,8 +123,8 @@ namespace ecsa
         template<int Id>
         void add(Entity e, Component * c)
         {
-            assert((*_table)[Id][e] == nullptr && "ECSA ERROR: component already exists!");
-            (*_table)[Id][e] = c;
+            assert(_table[Id][e] == nullptr && "ECSA ERROR: component already exists!");
+            _table[Id][e] = c;
         }
 
 
@@ -136,9 +139,9 @@ namespace ecsa
         template<typename Type, int Id>
         void add(Entity e, Type c)
         {
-            assert((*_iwram_components)[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
+            assert(_iwram_components[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
             _iwram_allocated.add(Entities * Id + e);
-            (*((Array<Type, Entities> *) (*_iwram_components)[Id]))[e] = c;
+            (*((Array<Type, Entities> *) _iwram_components[Id]))[e] = c;
         }
 
 
@@ -151,7 +154,7 @@ namespace ecsa
         template<int Id>
         void add(IArray * components_array)
         {
-            assert((*_iwram_components)[Id] == nullptr && "ECSA ERROR: IWRAM component already exists!");
+            assert(_iwram_components[Id] == nullptr && "ECSA ERROR: IWRAM component already exists!");
             _iwram_components[Id] = components_array;
         }
 
@@ -166,8 +169,8 @@ namespace ecsa
         template<typename Type, int Id>
         Array<Type, Entities> & get()
         {
-            assert((*_iwram_components)[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
-            return (Array<Type, Entities> &) *((*_iwram_components)[Id]);
+            assert(_iwram_components[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
+            return (Array<Type, Entities> &) *(_iwram_components[Id]);
         }
 
 
@@ -183,8 +186,8 @@ namespace ecsa
         template<typename Type, int Id>
         Type & get(Entity e)
         {
-            assert((*_table)[Id][e] != nullptr && "ECSA ERROR: component not found!");
-            return (Type &) *((*_table)[Id][e]);
+            assert(_table[Id][e] != nullptr && "ECSA ERROR: component not found!");
+            return (Type &) *(_table[Id][e]);
         }
 
 
@@ -194,12 +197,12 @@ namespace ecsa
          * @tparam Id The Id of the component.
          * @param e The Id of the entity.
          * @return true 
-         * @return false 
+         * @return false
          */
         template<int Id>
         bool has(Entity e)
         {
-            return _iwram_allocated.contains(Entities * Id + e) || (*_table)[Id][e] != nullptr;
+            return _iwram_allocated.contains(Entities * Id + e) || _table[Id][e] != nullptr;
         }
 
 
@@ -212,9 +215,9 @@ namespace ecsa
         template<int Id>
         void add(ISystem * s)
         {
-            assert((*_systems)[Id] == nullptr && "ECSA ERROR: system already exists!");
+            assert(_systems[Id] == nullptr && "ECSA ERROR: system already exists!");
             s->activate();
-            (*_systems)[Id] = s;
+            _systems[Id] = s;
         }
 
 
@@ -227,8 +230,8 @@ namespace ecsa
         template<int Id>
         ISystem * get()
         {
-            assert((*_systems)[Id] != nullptr && "ECSA ERROR: system not found!");
-            return (*_systems)[Id];
+            assert(_systems[Id] != nullptr && "ECSA ERROR: system not found!");
+            return _systems[Id];
         }
 
 
@@ -240,7 +243,7 @@ namespace ecsa
         template<int Id>
         void activate()
         {
-            ISystem * s = (*_systems)[Id];
+            ISystem * s = _systems[Id];
             s->activate();
         }
 
@@ -253,7 +256,7 @@ namespace ecsa
         template<int Id>
         void deactivate()
         {
-            ISystem * s = (*_systems)[Id];
+            ISystem * s = _systems[Id];
             s->deactivate();
         }
 
@@ -266,7 +269,7 @@ namespace ecsa
         {
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr)
                     s->activate();
             }
@@ -281,7 +284,7 @@ namespace ecsa
         {
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr)
                     s->deactivate();
             }
@@ -477,7 +480,7 @@ namespace ecsa
         {
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr)
                     s->init();
             }
@@ -492,7 +495,7 @@ namespace ecsa
         {
             for (int i = 0; i < Systems; i++)
             {
-                ISystem * s = (*_systems)[i];
+                ISystem * s = _systems[i];
                 if (s != nullptr && s->active())
                     s->update();
             }
@@ -519,19 +522,10 @@ namespace ecsa
             for (int c = 0; c < Components; c++)
             {
                 for (int e = 0; e < Entities; e++)
-                {
-                    delete (*_table)[c][e];
-                    (*_table)[c][e] = nullptr;
-                }
+                    delete _table[c][e];
             }
-            delete _table;
-            delete _iwram_components;
             for (int s = 0; s < Systems; s++)
-            {
-                delete (*_systems)[s];
-                (*_systems)[s] = nullptr;
-            }
-            delete _systems;
+                delete _systems[s];
         }
 
 

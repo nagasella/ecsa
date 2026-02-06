@@ -69,7 +69,7 @@ Therefore, we can define an entity table like this:
 ecsa::EntityTable<100, 2, 4> table;
 ```
 
-This means that the `EntityTable` can contain up to `100` entities and up to `2` components, and have `4` associated systems.
+This means that the `EntityTable` can contain up to `100` entities and up to `2` components, and have `4` associated systems. If the table is big, you may need to allocate it on the heap using `new`, otherwise the GBA's IWRAM will be quickly filled; for example, an entity table defined with 256 entities and 32 components will completely fill the IWRAM, without even creating any _actual_ component.
 
 It is generally useful to define an alias for a table like this:
 
