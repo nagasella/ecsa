@@ -24,6 +24,8 @@ Below is a basic introduction to Entity Systems, as well as a comprehensive tuto
 
 * [Optimized queries](#optimized-queries)
 
+* [Polymorphic components](#polymorphic-components)
+
 * [IWRAM components](#iwram-components)
 
 * [Boosting performance with ARM code](#boosting-performance-with-arm-code)
@@ -448,6 +450,91 @@ int x_limit = 200;
 
 ecsa::EntityBag<100> ids = table.query<100, SYSMOVEMENT, int>(&find_entities_with_positive_x, x_limit);
 ```
+
+
+## Polymorphic components
+
+Since components are allocated using `new`, polymorphism can be used in specific scenarios as a helpful tool. One example is to store data relative to the specific game object. Let's take the example of a space invaders kind of game: in the game, there is the player ship, bullets and aliens. Each of these share some behaviors (such as having to update their position based on their velocity, which can be implemented with regular components) plus some speicifc behavior that they do not share with each other. We could think then to implement a `Player` component, a `Bullet` component and a `Alien` component, and then define systems that will update each entity depending on whether they have each coponent. However, this would waste 3 columns of our entity table for components that are very sparsely populated: for example, the `Player` component will be owned only by one single entity, which will leave many _slots_ of our entity table empty. More compelx games would make this even worse.
+
+Another approach is to use polymorphism to our advantage. We can define a `GameObject` component, from which the other 3 will inherit:
+
+```cpp
+#define GAME_OBJECT 0 // component ID
+
+#define GO_PLAYER 0 // types of game obejcts
+#define GO_ALIEN 1
+#define GO_BULLET 2
+
+struct GameObject : public ecsa::Component
+{
+    int type;
+
+    GameObject(int type) : type(type) {}
+};
+
+struct Player : public GameObject
+{
+    int health;
+
+    Player() : GameObject(GO_PLAYER), health(3) { }
+};
+
+struct Alien : public GameObject
+{
+    int health;
+
+    Alien(int health) : GameObject(GO_ALIEN), health(health) { }
+};
+
+struct Bullet : public GameObject
+{
+    Bullet() : GameObject(GO_BULLET) { }
+};
+```
+
+When assigning the actual component to each entity, we will use the same `GAME_OBJECT` component ID in all cases - example for an `Alien`:
+
+```cpp
+ecsa::Entity e = table.create();
+table.add<GAME_OBJECT>(e, new Alien(3));
+// ...
+table.subscribe(e);
+```
+
+... and for the `Player`:
+
+```cpp
+ecsa::Entity e = table.create();
+table.add<GAME_OBJECT>(e, new Player());
+// ...
+table.subscribe(e);
+```
+
+If we now take for example the alien-processing system, we will have to define its `select` clause a bit differently than before:
+
+```cpp
+bool select(ecsa::Entity e) override
+{
+    return table.has<GAME_OBJECT>(e)
+        && table.get<GameObject, GAME_OBJECT>(e).type == GO_ALIEN;
+}
+```
+
+Here, polyorphism is used to obtain a `GameObject` component (a sliced version of the entity's actual `Alien` component) and verify its type. Then, we can retrieve the `Alien` component as usual in the update fuction:
+
+```cpp
+void update() override
+{
+    for (ecsa::Entity e : this->subscribed())
+    {
+        Alien & alien = table.get<Alien, GAME_OBJECT>(e);
+        
+        // implement alien behavior...
+    }
+}
+```
+
+Like, this, our entity table can use a single column for each `GameObject`-like component, even though the actual component stored for each entity will be of differen type.
 
 
 ## IWRAM components
