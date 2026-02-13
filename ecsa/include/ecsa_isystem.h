@@ -1,5 +1,5 @@
-#ifndef ECSA_IQUERY_H
-#define ECSA_IQUERY_H
+#ifndef ECSA_ISYSTEM_H
+#define ECSA_ISYSTEM_H
 
 #include "ecsa.h"
 
@@ -23,7 +23,7 @@ namespace ecsa
          * If it is, it `update` function will be processed by ECSA each frame.
          * 
          */
-        bool active()
+        [[nodiscard]] bool active()
         {
             return _active;
         }

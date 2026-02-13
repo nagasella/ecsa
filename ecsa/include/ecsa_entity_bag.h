@@ -1,5 +1,5 @@
-#ifndef ECSA_VECTOR_H
-#define ECSA_VECTOR_H
+#ifndef ECSA_ENTITY_BAG_H
+#define ECSA_ENTITY_BAG_H
 
 #include <cassert>
 
@@ -19,7 +19,7 @@ namespace ecsa
 
 
         /**
-         * @brief Current bag size.
+         * @brief Tracks the number of elements.
          * 
          */
         int _size;

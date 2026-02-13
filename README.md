@@ -89,7 +89,7 @@ A new entity can be created inside a table like this:
 ecsa::Entity e = table.create();
 ```
 
-Here, `e` is an ID that identifies the entity uniquely (`ecsa::Entity` is just an alias for `unsigned int`).
+Here, `e` is an ID that identifies the entity uniquely (`ecsa::Entity` is just an alias for `int`).
 
 Then, we can define some components:
 

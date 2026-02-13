@@ -9,14 +9,7 @@ namespace ecsa
      * @brief `Entity` alias, used for entity Ids.
      * 
      */
-    using Entity = unsigned int;
-
-
-    /**  
-     * @brief `Id` alias, used for components and systems Ids.
-     * 
-     */
-    using Id = unsigned int;
+    using Entity = int;
 
 
     /**
@@ -72,7 +65,7 @@ namespace ecsa
      */
     template<int Entities, int Components, int Systems>
     class EntityTable;
-
+    
 
     /**
      * @brief Base class for System type.

@@ -1,5 +1,5 @@
-#ifndef ECSA_STATIC_QUERY_H
-#define ECSA_STATIC_QUERY_H
+#ifndef ECSA_SYSTEM_H
+#define ECSA_SYSTEM_H
 
 #include "ecsa.h"
 
@@ -63,7 +63,7 @@ namespace ecsa
          * @return true 
          * @return false 
          */
-        bool subscribed(Entity e) override
+        [[nodiscard]] bool subscribed(Entity e) override
         {
             return _mask_subscribed.contains(e);
         }
@@ -74,7 +74,7 @@ namespace ecsa
          * 
          * @return EntityBag<SystemEntities> 
          */
-        EntityBag<SystemEntities> subscribed()
+        [[nodiscard]] EntityBag<SystemEntities> subscribed()
         {
             return _subscribed;
         }

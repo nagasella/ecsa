@@ -26,7 +26,7 @@ namespace ecsa
          */
         EntityTable() : _systems(nullptr), _iwram_components(nullptr)
         {
-            for (int e = 0; e < Entities; e++)
+            for (Entity e = 0; e < Entities; e++)
             {
                 for (int c = 0; c < Components; c++)
                     _table[c][e] = nullptr;
@@ -40,7 +40,7 @@ namespace ecsa
          * 
          * @return Entity 
          */
-        Entity create()
+        [[nodiscard]] Entity create()
         {
             return _entities.create();
         }
@@ -92,7 +92,7 @@ namespace ecsa
          */
         void clear()
         {
-            for (int e = 0; e < Entities; e++)
+            for (Entity e = 0; e < Entities; e++)
             {
                 if (_entities.contains(e))
                     destroy(e);
@@ -107,7 +107,7 @@ namespace ecsa
          * @return true 
          * @return false 
          */
-        bool contains(Entity e)
+        [[nodiscard]] bool contains(Entity e)
         {
             return _entities.contains(e);
         }
@@ -167,7 +167,7 @@ namespace ecsa
          * @return Array<Type, Entities>& 
          */
         template<typename Type, int Id>
-        Array<Type, Entities> & get()
+        [[nodiscard]] Array<Type, Entities> & get()
         {
             assert(_iwram_components[Id] != nullptr && "ECSA ERROR: IWRAM component not found!");
             return (Array<Type, Entities> &) *(_iwram_components[Id]);
@@ -184,7 +184,7 @@ namespace ecsa
          * @return Type& 
          */
         template<typename Type, int Id>
-        Type & get(Entity e)
+        [[nodiscard]] Type & get(Entity e)
         {
             assert(_table[Id][e] != nullptr && "ECSA ERROR: component not found!");
             return (Type &) *(_table[Id][e]);
@@ -200,7 +200,7 @@ namespace ecsa
          * @return false
          */
         template<int Id>
-        bool has(Entity e)
+        [[nodiscard]] bool has(Entity e)
         {
             return _iwram_allocated.contains(Entities * Id + e) || _table[Id][e] != nullptr;
         }
@@ -228,7 +228,7 @@ namespace ecsa
          * @return ISystem* 
          */
         template<int Id>
-        ISystem * get()
+        [[nodiscard]] ISystem * get()
         {
             assert(_systems[Id] != nullptr && "ECSA ERROR: system not found!");
             return _systems[Id];
@@ -300,7 +300,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, int SystemId>
-        EntityBag<Size> query()
+        [[nodiscard]] EntityBag<Size> query()
         {
             return ((System<Entities, Size> *) get<SystemId>())->subscribed();
         }
@@ -315,7 +315,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size>
-        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
+        [[nodiscard]] EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
         {
             EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
@@ -336,7 +336,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size>
-        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &))
+        [[nodiscard]] EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &))
         {
             return (*func)(*this);
         }
@@ -354,7 +354,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, typename ParamType>
-        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
+        [[nodiscard]] EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
         {
             EntityBag<Size> result;
             for (Entity e = 0; e < Entities; e++)
@@ -378,7 +378,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, typename ParamType>
-        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, ParamType &), ParamType & param)
+        [[nodiscard]] EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, ParamType &), ParamType & param)
         {
             return (*func)(*this, param);
         }
@@ -395,7 +395,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, int SystemId>
-        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
+        [[nodiscard]] EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity))
         {
             EntityBag<Size> result;
             EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
@@ -418,7 +418,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, int SystemId>
-        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &))
+        [[nodiscard]] EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &))
         {
             EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
             return (*func)(*this, ids);
@@ -439,7 +439,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, int SystemId, typename ParamType>
-        EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
+        [[nodiscard]] EntityBag<Size> query(bool (* func) (EntityTable<Entities, Components, Systems> &, Entity, ParamType &), ParamType & param)
         {
             EntityBag<Size> result;
             EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
@@ -465,7 +465,7 @@ namespace ecsa
          * @return EntityBag<Size> 
          */
         template<int Size, int SystemId, typename ParamType>
-        EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &, ParamType &), ParamType & param)
+        [[nodiscard]] EntityBag<Size> query(EntityBag<Size> (* func) (EntityTable<Entities, Components, Systems> &, EntityBag<Size> &, ParamType &), ParamType & param)
         {
             EntityBag<Size> ids = ((System<Entities, Size> *) get<SystemId>())->subscribed();
             return (*func)(*this, ids, param);
@@ -507,7 +507,7 @@ namespace ecsa
          * 
          * @return constexpr int 
          */
-        constexpr int capacity()
+        [[nodiscard]] constexpr int capacity()
         {
             return Entities;
         }
