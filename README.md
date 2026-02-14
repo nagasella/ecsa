@@ -217,7 +217,7 @@ table.add<SYSMOVEMENT>(new SysMovement(table));
 `SYSMOVEMENT` is an integer index which has to be defined for each system (called system ID). As for components, this index is used to retrieve systems from the table:
 
 ```cpp
-SysMovement * sys = table.get<SYSMOVEMENT>();
+SysMovement * sys = (SysMovement *) table.get<SYSMOVEMENT>();
 ```
 
 IMPORTANT NOTE: systems are processed in the order defined by their system IDs, therefore the system with ID `0` will be the first one to be processed, followed by the next ones, in order.
